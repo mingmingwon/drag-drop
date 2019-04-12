@@ -28,14 +28,14 @@ const utils = {
 	}
 };
 
-let dragEl,
-	$dragEl,
+let rootEl,
+	$rootEl,
 	parentEl,
 	$parentEl,
+	dragEl,
+	$dragEl,
 	cloneEl,
 	$cloneEl,
-	rootEl,
-	$rootEl,
 	nextEl,
 	$nextEl,
 	oldIndex,
@@ -256,17 +256,12 @@ class DragDrop {
 		const options = this.options;
 		const { ignore, chosenClass } = options;
 
-		rootEl = el;
+		parentEl = rootEl = el;
+		$parentEl = $rootEl = $(el);
 		dragEl = target;
-		parentEl = dragEl.parentNode;
-		nextEl = dragEl.nextElementSibling;
-		$rootEl = $(rootEl);
 		$dragEl = $(dragEl);
-		$parentEl = $(parentEl);
+		nextEl = target.nextElementSibling;
 		$nextEl = $(nextEl);
-
-		this._lastX = evt.clientX;
-		this._lastY = evt.clientY;
 		
 		$(dragEl).find(ignore).each((index, item) => {
 			item.draggable = false;
@@ -548,14 +543,14 @@ class DragDrop {
 	}
 
 	reset() {
-		dragEl =
-		$dragEl =
-		parentEl =
-		$parentEl =
-		cloneEl =
-		$cloneEl =
 		rootEl =
 		$rootEl =
+		parentEl =
+		$parentEl =
+		dragEl =
+		$dragEl =
+		cloneEl =
+		$cloneEl =
 		nextEl =
 		$nextEl =
 		oldIndex =
@@ -630,9 +625,9 @@ class DragDrop {
 		if ($nextEl.length) {
 			$cloneEl.insertBefore($nextEl);
 		} else {
-			$cloneEl.appendTo($parentEl);
+			$cloneEl.appendTo($rootEl);
 		}
-		
+
 		$cloneEl.css('display', '');
 	}
 
