@@ -1,6 +1,12 @@
 import $ from 'sprint-js';
 
 const utils = {
+	uniStr() {
+		return Date.now().toString(32);
+	},
+	assign(target, ...from) {
+		return Object.assign(target, ...from);
+	},
 	throwError(msg) {
 		throw `DragDrop Error: ${msg}`;
 	},
@@ -54,45 +60,53 @@ $(doc).on('dragover', function (evt) {
 class DragDrop {
 	constructor(...args) {
 		this.checkDraggable();
+
 		let opts = this.normalizeArgs(args);
-		this.initEl(opts);
 		this.options = this.mergeOptions(opts);
-		this.transGroup();
+
+		this.initEl();
+		this.initGroup();
 		this.initEvents();
+
 		DragDrop.instances.push(this);
 	}
 
 	checkDraggable() {
-		const supportDraggable = 'draggable' in doc.createElement('div');
+		let supportDraggable = 'draggable' in doc.createElement('div');
+
 		if (!supportDraggable) {
-			utils.throwError('Your browser doesn\'t support H5 Drag and Drop');
+			utils.throwError('browser doesn\'t support HTML5 Drag and Drop!');
 		}
 	}
 
 	normalizeArgs(args) {
-		const len = args.length;
-		const opts = Object.create(null);
+		let len = args.length;
+		let opts = Object.create(null);
+
 		if (len === 0) {
-			utils.throwError('requires at least one param');
+			utils.throwError('requires at least one parameter');
 		} else if (len === 1) {
 			if (utils.isPlainObject(args[0])) {
-				Object.assign(opts, args[0]);
-			} else if (typeof args[0] === 'string') {
-				opts.el = args[0];
+				utils.assign(opts, args[0]);
 			} else {
-				utils.throwError('parameter type not available');
+				opts.el = args[0];
 			}
 		} else {
-			if (typeof args[0] === 'string' || utils.isPlainObject(args[0])) {
-				Object.assign(opts, args[1], {
+			if (utils.isPlainObject(args[1])) {
+				utils.assign(opts, args[1], {
 					el: args[0]
 				});
 			} else {
-				utils.throwError('parameter type not available');
+				utils.throwError('`options` parameter invalid');
 			}
 		}
 
-		const el = $(opts.el).get(0);
+		let el = opts.el;
+		if (!utils.isString(el)) {
+			utils.throwError('`el` parameter invalid');
+		}
+
+		el = $(el).get(0);
 		if (!el || el.nodeType !== 1) {
 			utils.throwError('`el` matches no HTML Element');
 		}
@@ -101,30 +115,23 @@ class DragDrop {
 		return opts;
 	}
 
-	initEl(opts) {
-		this.el = opts.el;
-		this.$el = $(opts.el);
-		this.uid = `dd-${Date.now().toString(32)}`;
-		this.$el.addClass(this.uid);
-	}
-
 	mergeOptions(opts) {
-		const defaults = {
+		let defaults = {
 			group: null,
 			sortable: true,
 			disabled: false,
-			draggable: `.${[].join.call(this.el.classList, '.')}>*`,
+			draggable: `.${[].join.call(opts.el.classList, '.')}>*`,
 			ignore: 'a, img',
-			chosenClass: 'sortable-chosen',
-			ghostClass: 'sortable-ghost',
-			dragClass: 'sortable-drag',
+			chosenClass: 'dd-chosen',
+			ghostClass: 'dd-ghost',
+			dragClass: 'dd-drag',
 			setData(dataTransfer) {
 				dataTransfer.setData('Text', $dragEl.textContent);
 			},
 			dragoverBubble: false,
-			duration: 1000,
+			duration: 100, // ms
 			easing: 'cubic-bezier(1, 0, 0, 1)',
-			emptyInstanceThreshold: 10 // TODO: 内部范围阈值
+			emptyInstanceThreshold: 10 // TODO
 		};
 
 		for (let key in defaults) {
@@ -132,6 +139,51 @@ class DragDrop {
 		}
 
 		return opts;
+	}
+
+	initEl() {
+		let el = this.options.el;
+
+		this.el = el;
+		this.$el = $(el);
+		this.uid = `dd-${utils.uniStr()}`;
+		this.$el.addClass(this.uid);
+	}
+
+	initGroup() {
+		const group = {};
+		const options = this.options;
+		let _group = options.group;
+
+		if (utils.isPlainObject(_group)) {
+			// do nothing here
+		} else if (utils.isString(_group)) {
+			_group = {
+				name: _group
+			};
+		} else {
+			_group = {};
+		}
+
+		group.name = _group.name;
+		group.drag = _group.drag;
+		group.drop = _group.drop;
+		group.checkDrag = this.toDragFn(_group.drag);
+		group.checkDrop = this.toDropFn(_group.drop);
+
+		options.group = group;
+	}
+
+	initEvents() {
+		const proto = Object.getPrototypeOf(this) || this.__proto__;
+		Object.getOwnPropertyNames(proto).map(fn => { // ES6 prototype not enumerable
+			if (fn.startsWith('_') && typeof proto[fn] === 'function') {
+				this[fn.slice(1)] = proto[fn].bind(this);
+			}
+		});
+
+		this.$el.on('mousedown', this.onSelect)
+		.on('dragenter dragover', this.handleEvent);
 	}
 
 	toDragFn(drag) {
@@ -174,42 +226,6 @@ class DragDrop {
 				return false;
 			}
 		}
-	}
-	
-	transGroup() {
-		const group = {};
-		const options = this.options;
-		let _group = options.group;
-
-		if (utils.isPlainObject(_group)) {
-			// do nothing here
-		} else if (utils.isString(_group)) {
-			_group = {
-				name: _group
-			};
-		} else {
-			_group = {};
-		}
-
-		group.name = _group.name;
-		group.drag = _group.drag;
-		group.drop = _group.drop;
-		group.checkDrag = this.toDragFn(_group.drag);
-		group.checkDrop = this.toDropFn(_group.drop);
-
-		options.group = group;
-	}
-
-	initEvents() {
-		const proto = Object.getPrototypeOf(this) || this.__proto__;
-		Object.getOwnPropertyNames(proto).map(fn => { // ES6 prototype not enumerable
-			if (fn.startsWith('_') && typeof proto[fn] === 'function') {
-				this[fn.slice(1)] = proto[fn].bind(this);
-			}
-		});
-
-		this.$el.on('mousedown', this.onSelect)
-		.on('dragenter dragover', this.handleEvent);
 	}
 
 	_onSelect(evt) {
