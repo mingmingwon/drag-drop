@@ -91,10 +91,13 @@ class DragDrop {
 
     mergeOptions(opts) {
         let defaults = {
+            iden: 'dd-id',
             group: null,
             sortable: true,
             disabled: false,
-            draggable: `.${[].join.call(opts.el.classList, '.')}>*`,
+            draggable(iden) {
+                return `[${this.iden}="${iden}"]>*`;
+            },
             ignore: 'a, img',
             supportPointer: 'PointerEvent' in win,
             chosenClass: 'dd-chosen',
@@ -117,12 +120,17 @@ class DragDrop {
     }
 
     initEl() {
-        let el = this.options.el;
+        let options = this.options;
+        let {el, iden, draggable } = options;
 
         this.el = el;
         this.$el = $(el);
-        this.uid = `dd-${util.rndStr()}`;
-        this.$el.addClass(this.uid);
+        this.iden = util.rndStr();
+        this.$el.attr(iden, this.iden);
+
+        if (util.isFunction(draggable)) {
+            options.draggable = options.draggable(this.iden); 
+        }
     }
 
     initGroup() {
