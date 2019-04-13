@@ -50,15 +50,16 @@ let rootEl,
 	targetRect,
 	lastMode,
 	lastTarget;
+let docDragOverInit = false,
+	docDragOverEvent = function (evt) {
+		if (!dragEl) return;
+
+		let dragdrop = DragDrop.detectEmptyInstance(evt);
+		dragdrop && dragdrop.onDragging(evt);
+	};
 const win = window,
-	doc = win.document;
-
-$(doc).on('dragover', function (evt) {
-	if (!dragEl) return;
-
-	let dragdrop = DragDrop.detectEmptyInstance(evt);
-	dragdrop && dragdrop.onDragging(evt);
-});
+	doc = win.document,
+	$doc = $(doc);
 
 class DragDrop {
 	constructor(...args) {
@@ -220,15 +221,19 @@ class DragDrop {
 	}
 
 	initEvents() {
-		const proto = Object.getPrototypeOf(this) || this.__proto__;
-		Object.getOwnPropertyNames(proto).map(fn => { // ES6 prototype not enumerable
-			if (fn.startsWith('_') && typeof proto[fn] === 'function') {
-				this[fn.slice(1)] = proto[fn].bind(this);
+		let proto = Object.getPrototypeOf(this);
+		Object.getOwnPropertyNames(proto).map(fn => { // ES6 Class prototype not enumerable
+			if (fn.startsWith('_') && utils.isFunction(proto[fn])) {
+				this[fn.slice(1)] = proto[fn].bind(this); // `this` => instance, and able to off event
 			}
 		});
 
 		this.$el.on('mousedown', this.onSelect)
 		.on('dragenter dragover', this.handleEvent);
+
+		if (docDragOverInit) return; // enure just one event binded
+		$doc.on('dragover', docDragOverEvent);
+		docDragOverInit = true;
 	}
 
 	_onSelect(evt) {
