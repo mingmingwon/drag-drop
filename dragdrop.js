@@ -1,35 +1,5 @@
 import $ from 'sprint-js';
-
-const utils = {
-	uniStr() {
-		return Date.now().toString(32);
-	},
-	assign(target, ...from) {
-		return Object.assign(target, ...from);
-	},
-	createObj() {
-		return Object.create(null);
-	},
-	throwError(msg) {
-		throw `DragDrop Error: ${msg}`;
-	},
-	isString(str) {
-		return typeof str === 'string';
-	},
-	isFunction(fn) {
-		return typeof fn === 'function';
-	},
-	isArray(arr) {
-		return Array.isArray(arr);
-	},
-	isPlainObject(obj) {
-		const toString = Object.prototype.toString;
-		return toString.call(obj) === '[object Object]';
-	},
-	capitalize(str) {
-		return str.charAt(0).toUpperCase() + str.slice(1);
-	}
-};
+import util from './util';
 
 let rootEl,
 	$rootEl,
@@ -79,40 +49,40 @@ class DragDrop {
 		let supportDraggable = 'draggable' in doc.createElement('div');
 
 		if (!supportDraggable) {
-			utils.throwError('browser doesn\'t support HTML5 Drag and Drop!');
+			util.throwError('browser doesn\'t support HTML5 Drag and Drop!');
 		}
 	}
 
 	normalizeArgs(args) {
 		let len = args.length;
-		let opts = utils.createObj();
+		let opts = util.createObj();
 
 		if (len === 0) {
-			utils.throwError('requires at least one parameter');
+			util.throwError('requires at least one parameter');
 		} else if (len === 1) {
-			if (utils.isPlainObject(args[0])) {
-				utils.assign(opts, args[0]);
+			if (util.isPlainObject(args[0])) {
+				util.assign(opts, args[0]);
 			} else {
 				opts.el = args[0];
 			}
 		} else {
-			if (utils.isPlainObject(args[1])) {
-				utils.assign(opts, args[1], {
+			if (util.isPlainObject(args[1])) {
+				util.assign(opts, args[1], {
 					el: args[0]
 				});
 			} else {
-				utils.throwError('`options` parameter invalid');
+				util.throwError('`options` parameter invalid');
 			}
 		}
 
 		let el = opts.el;
-		if (!utils.isString(el)) {
-			utils.throwError('`el` parameter invalid');
+		if (!util.isString(el)) {
+			util.throwError('`el` parameter invalid');
 		}
 
 		el = $(el).get(0);
 		if (!el || el.nodeType !== 1) {
-			utils.throwError('`el` matches no HTML Element');
+			util.throwError('`el` matches no HTML Element');
 		}
 
 		opts.el = el;
@@ -150,18 +120,18 @@ class DragDrop {
 
 		this.el = el;
 		this.$el = $(el);
-		this.uid = `dd-${utils.uniStr()}`;
+		this.uid = `dd-${util.rndStr()}`;
 		this.$el.addClass(this.uid);
 	}
 
 	initGroup() {
-		let group = utils.createObj(),
+		let group = util.createObj(),
 			options = this.options,
 			_group = options.group;
 
-		if (utils.isPlainObject(_group)) {
+		if (util.isPlainObject(_group)) {
 			// do nothing here
-		} else if (utils.isString(_group)) {
+		} else if (util.isString(_group)) {
 			_group = {
 				name: _group
 			};
@@ -177,11 +147,11 @@ class DragDrop {
 					return true;  // default to true
 				} else if (drag === false || drag === true || drag === 'clone') {
 					return drag;
-				} else if (utils.isString(drag)) {
+				} else if (util.isString(drag)) {
 					return drag === toName;
-				} else if (utils.isArray(drag)) {
+				} else if (util.isArray(drag)) {
 					return drag.includes(toName);
-				} else if (utils.isFunction(drag)) {
+				} else if (util.isFunction(drag)) {
 					return toDragFn(drag.call(from, ...arguments));
 				} else {
 					return false;
@@ -199,11 +169,11 @@ class DragDrop {
 					return sameGroup; // depends whether are same group
 				} else if (drop === false || drop === true) {
 					return drop;
-				} else if (utils.isString(drop)) {
+				} else if (util.isString(drop)) {
 					return drop === fromName;
-				} else if (utils.isArray(drop)) {
+				} else if (util.isArray(drop)) {
 					return drop.includes(fromName);
-				} else if (utils.isFunction(drop)) {
+				} else if (util.isFunction(drop)) {
 					return toDropFn(drop.call(to, ...arguments));
 				} else {
 					return false;
@@ -223,7 +193,7 @@ class DragDrop {
 	initEvents() {
 		let proto = Object.getPrototypeOf(this);
 		Object.getOwnPropertyNames(proto).map(fn => { // ES6 Class prototype not enumerable
-			if (fn.startsWith('_') && utils.isFunction(proto[fn])) {
+			if (fn.startsWith('_') && util.isFunction(proto[fn])) {
 				this[fn.slice(1)] = proto[fn].bind(this); // `this` => instance, and able to off event
 			}
 		});
@@ -312,7 +282,7 @@ class DragDrop {
 
 	dispatchEvent(name, dragEl, fromEl, toEl, evt, oldIndex, newIndex) {
 		const options = this.options;
-		const evtName = `on${utils.capitalize(name)}`;
+		const evtName = `on${util.capitalize(name)}`;
 		const evtHandler = options[evtName];
 		let event;
 
@@ -339,7 +309,7 @@ class DragDrop {
 	_onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt) {
 		const name = 'move';
 		const options = this.options;
-		const evtName = `on${utils.capitalize(name)}`;
+		const evtName = `on${util.capitalize(name)}`;
 		const evtHandler = options[evtName];
 
 		if (win.CustomEvent) {
