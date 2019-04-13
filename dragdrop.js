@@ -96,6 +96,7 @@ class DragDrop {
 			disabled: false,
 			draggable: `.${[].join.call(opts.el.classList, '.')}>*`,
 			ignore: 'a, img',
+			supportPointer: 'PointerEvent' in win,
 			chosenClass: 'dd-chosen',
 			ghostClass: 'dd-ghost',
 			dragClass: 'dd-drag',
@@ -198,8 +199,13 @@ class DragDrop {
 			}
 		});
 
-		this.$el.on('mousedown', this.onSelect)
-		.on('dragenter dragover', this.handleEvent);
+		let $el = this.$el;
+		if (this.options.supportPointer) {
+			$el.on('pointerdown', this.onSelect);
+		} else {
+			$el.on('mousedown', this.onSelect);
+		}
+		$el.on('dragenter dragover', this.handleEvent);
 
 		if (docDragOverInit) return; // enure just one event binded
 		$doc.on('dragover', docDragOverEvent);
