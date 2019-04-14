@@ -23,7 +23,6 @@ let rootEl,
 let docDragOverInit = false,
     docDragOverEvent = function (evt) {
         if (!dragEl) return;
-
         let dragdrop = DragDrop.detectEmptyInstance(evt);
         dragdrop && dragdrop.onDragging(evt);
     };
@@ -221,19 +220,19 @@ class DragDrop {
     }
 
     _onSelect(evt) {
-        const el = this.el;
-        const $el = this.$el;
-        const options =  this.options;
-        const type = evt.type;
-        let target = evt.target;
+        let el = this.el;
+        let $el = this.$el;
+        let options =  this.options;
+        let { disabled, draggable, filter } = options;
+        let { type, target, button } = evt;
 
-        // W3C Std: left/middle/right 0/1/2
+        // W3C Standard: left/middle/right 0/1/2
         // IE9Less: left/middle/right 1/4/2
-        if (options.disabled || evt.button !== 0) {
+        if (disabled || button !== 0) {
             return;
         }
 
-        target = $(target).closest(options.draggable, el).get(0);
+        target = $(target).closest(draggable, el).get(0);
         if (!target) return;
 
         oldIndex = $(target).index();
