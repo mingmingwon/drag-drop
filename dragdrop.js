@@ -108,7 +108,7 @@ class DragDrop {
             dragoverBubble: false,
             duration: 100, // ms
             easing: 'cubic-bezier(1, 0, 0, 1)',
-            emptyInstanceThreshold: 10 // TODO
+            emptyInstanceThreshold: 10 // px
         };
 
         for (let key in defaults) {
@@ -433,7 +433,7 @@ class DragDrop {
                     dragIns.showClone();
                 }
 
-                $dragEl.appendTo($target);
+                $dragEl.appendTo($el);
 
                 parentEl = target;
                 $parentEl = $(parentEl);
