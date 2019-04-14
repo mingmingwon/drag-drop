@@ -98,6 +98,8 @@ class DragDrop {
             draggable(iden) {
                 return `[${this.iden}="${iden}"]>*`;
             },
+            filter: null,
+            handle: null,
             exceptEl: 'a, img', // should be changed to undraggable
             chosenClass: 'dd-chosen',
             ghostClass: 'dd-ghost',
@@ -223,8 +225,8 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options =  this.options;
-        let { disabled, draggable, filter } = options;
-        let { type, target, button } = evt;
+        let { disabled, draggable, filter, handle } = options;
+        let { type, target: _target, button } = evt; // keep original as _target
 
         // W3C Standard: left/middle/right 0/1/2
         // IE9Less: left/middle/right 1/4/2
@@ -238,8 +240,29 @@ class DragDrop {
 
         let target = $(_target).closest(draggable, el).get(0);
         if (!target) return;
+        if (target.parentNode !== el) return; // Only children draggable
 
-        oldIndex = $(target).index();
+        if (util.isFunction(filter)) {
+            if (filter.call(this, evt, _target, target)) {
+                evt.preventDefault();
+                return;
+            }
+        } else if (util.isString(filter)) {
+            let match = filter.split(/,\s*/).some(sel => {
+                return $(_target).closest(sel, el).get(0);
+            });
+
+            if (match) {
+                evt.preventDefault();
+                return;
+            }
+        }
+
+        if (handle && !$(_target).closest(handle, el).get(0)) {
+            return;
+        }
+
+        oldIndex = $(target).index(draggable); // unmatch: -1
 
         this.initDragStart(evt, target, oldIndex);
     }
