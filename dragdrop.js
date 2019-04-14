@@ -28,7 +28,8 @@ let docDragOverInit = false,
     };
 const win = window,
     doc = win.document,
-    $doc = $(doc);
+    $doc = $(doc),
+    supportPointer = 'PointerEvent' in win;
 
 class DragDrop {
     constructor(...args) {
@@ -97,8 +98,7 @@ class DragDrop {
             draggable(iden) {
                 return `[${this.iden}="${iden}"]>*`;
             },
-            ignore: 'a, img',
-            supportPointer: 'PointerEvent' in win,
+            exceptEl: 'a, img', // should be changed to undraggable
             chosenClass: 'dd-chosen',
             ghostClass: 'dd-ghost',
             dragClass: 'dd-drag',
@@ -207,7 +207,7 @@ class DragDrop {
         });
 
         let $el = this.$el;
-        if (this.options.supportPointer) {
+        if (supportPointer) {
             $el.on('pointerdown', this.onSelect);
         } else {
             $el.on('mousedown', this.onSelect);
@@ -232,7 +232,11 @@ class DragDrop {
             return;
         }
 
-        target = $(target).closest(draggable, el).get(0);
+        if (_target.isContentEditable) {
+            return;
+        }
+
+        let target = $(_target).closest(draggable, el).get(0);
         if (!target) return;
 
         oldIndex = $(target).index();
@@ -243,22 +247,27 @@ class DragDrop {
     initDragStart(evt, target, oldIndex) {
         if (dragEl) return;
 
-        const el = this.el;
-        const options = this.options;
-        const { ignore, chosenClass } = options;
+        let el = this.el,
+            $el = this.$el,
+            options = this.options,
+            { exceptEl, chosenClass } = options;
 
         parentEl = rootEl = el;
-        $parentEl = $rootEl = $(el);
+        $parentEl = $rootEl = $el;
         dragEl = target;
         $dragEl = $(dragEl);
         nextEl = target.nextElementSibling;
         $nextEl = $(nextEl);
         
-        $dragEl.find(ignore).each((index, item) => {
+        $dragEl.find(exceptEl).each((index, item) => {
             item.draggable = false;
         });
 
-        this.$el.on('mouseup', this.onDrop);
+        if (supportPointer) {
+            $el.on('pointerup', this.onDrop);
+        } else {
+            $el.on('mouseup', this.onDrop);
+        }
 
         dragEl.draggable = true;
         $dragEl.addClass(chosenClass);
@@ -269,7 +278,7 @@ class DragDrop {
         $rootEl.on('dragstart', this.onDragStart);
         $rootEl.on('drop', this.handleEvent);
 
-        // clear selections
+        // clear selections before dragstart
         if (win.getSelection) {
             win.getSelection().removeAllRanges();
         } else if (doc.selection) {
