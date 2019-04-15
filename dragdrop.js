@@ -297,8 +297,9 @@ class DragDrop {
 
         this.dispatchEvent('choose', dragEl, rootEl, rootEl, evt, oldIndex);
 
-        $dragEl.on('dragend', this.handleEvent);
-        $rootEl.on('dragstart', this.onDragStart);
+        $dragEl.on('dragend', this.handleEvent); // dragend event on dragEl
+
+        $rootEl.on('dragstart', this.onDragStart); // drop event on rootEl
         $rootEl.on('drop', this.handleEvent);
 
         // clear selections before dragstart
@@ -307,6 +308,33 @@ class DragDrop {
         } else if (doc.selection) {
             doc.selection.empty();
         }
+    }
+
+    _onDragStart(evt) {
+        let { chosenClass, dragClass } = this.options;
+
+        cloneEl = dragEl.cloneNode(true);
+        cloneEl.draggable = false;
+        $cloneEl = $(cloneEl);
+        $cloneEl.removeClass(chosenClass);
+        this.hideClone();
+
+        $dragEl.addClass(dragClass);
+        setTimeout(this.onDragStarted, 0, evt);
+    }
+
+    _onDragStarted(evt) {
+        let { dragClass, ghostClass, setData } = this.options,
+            dataTransfer = evt.dataTransfer;
+
+        $dragEl.removeClass(dragClass).addClass(ghostClass);
+
+        dataTransfer.effectAllowed = 'move';
+        setData && setData.call(this, dataTransfer, dragEl);
+
+        dragIns = this;
+
+        this.dispatchEvent('start', dragEl, rootEl, rootEl, evt, oldIndex);
     }
 
     _handleEvent(evt) {
@@ -380,29 +408,6 @@ class DragDrop {
         // false: cancel
         // -1: insert before target
         // 1: insert after target
-    }
-
-    _onDragStart(evt) {
-        const dataTransfer = evt.dataTransfer;
-        const options = this.options;
-        const { chosenClass, dragClass, ghostClass, setData } = options;
-
-        $cloneEl = $dragEl.clone();
-        $cloneEl.removeClass(chosenClass);
-        cloneEl = $cloneEl.get(0);
-        cloneEl.draggable = false;
-        this.hideClone();
-
-        $dragEl.addClass(dragClass).addClass(ghostClass);
-
-        if (dataTransfer) {
-            dataTransfer.effectAllowed = 'move';
-            setData && setData.call(this, dataTransfer);
-        }
-
-        dragIns = this;
-
-        this.dispatchEvent('start', dragEl, rootEl, rootEl, evt, oldIndex);
     }
 
     _onDragging(evt) {
