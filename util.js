@@ -26,6 +26,19 @@ const util = {
     },
     capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+    createEvent(name) {
+        let evt;
+        if (window.CustomEvent) {
+            evt = new CustomEvent(name, {
+                bubbles: true,
+                cancelable: true
+            });
+        } else {
+            evt = document.createEvent('Event');
+            evt.initEvent(name, true, true);
+        }
+        return evt;
     }
 };
 

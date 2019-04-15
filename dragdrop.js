@@ -357,21 +357,11 @@ class DragDrop {
         let options = this.options,
             evtName = `on${util.capitalize(name)}`,
             evtHandler = options[evtName],
-            _evt;
+            _evt = util.createEvent(name);
 
-        if (win.CustomEvent) {
-            _evt = new CustomEvent(name, {
-                bubbles: true,
-                cancelable: true
-            });
-        } else {
-            _evt = doc.createEvent('Event');
-            _evt.initEvent(name, true, true);
-        }
-
-        _evt.item = dragEl;
         _evt.from = fromEl;
         _evt.to = toEl;
+        _evt.item = dragEl;
         _evt.clone = cloneEl;
         _evt.oldIndex = oldIndex;
         _evt.newIndex = newIndex;
@@ -380,31 +370,23 @@ class DragDrop {
         evtHandler && evtHandler.call(this, _evt);
     }
 
-    _onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt) {
-        const name = 'move';
-        const options = this.options;
-        const evtName = `on${util.capitalize(name)}`;
-        const evtHandler = options[evtName];
+    _onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt, oldIndex, newIndex) {
+        let options = this.options,
+            evtHandler = options.onMove,
+            _evt = util.createEvent('move');
 
-        if (win.CustomEvent) {
-            event = new CustomEvent(name, {
-                bubbles: true,
-                cancelable: true
-            });
-        } else {
-            event = doc.createEvent('Event');
-            event.initEvent(name, true, true);
-        }
+        _evt.from = fromEl;
+        _evt.to = toEl;
+        _evt.dragged = dragEl;
+        _evt.draggedRect = dragRect;
+        _evt.related = targetEl || toEl;
+        _evt.relatedRect = targetRect || DragDrop.getRect(toEl);
+        _evt.clone = cloneEl;
+        _evt.oldIndex = oldIndex;
+        _evt.newIndex = newIndex;
+        _evt.evt = evt;
 
-        event.from = fromEl;
-        event.to = toEl;
-        event.dragged = dragEl;
-        event.draggedRect = dragRect;
-        event.related = targetEl || toEl;
-        event.relatedRect = targetRect || DragDrop.getRect(toEl);
-        event.event = evt;
-
-        return evtHandler && evtHandler.call(this, event);
+        return evtHandler && evtHandler.call(this, _evt);
         // false: cancel
         // -1: insert before target
         // 1: insert after target
