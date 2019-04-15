@@ -150,7 +150,7 @@ class DragDrop {
         }
 
         let toDragFn = function(drag) {
-            return function(to, from, dragEl, evt) {
+            return function(from, to, dragEl, evt) {
                 let toName = to.options.group.name;
 
                 if (drag == null) {
@@ -170,7 +170,7 @@ class DragDrop {
         }
 
         let toDropFn = function(drop) {
-            return function(to, from, dragEl, evt) {
+            return function(from, to, dragEl, evt) {
                 let toName = to.options.group.name,
                     fromName = from.options.group.name,
                     sameGroup = toName && fromName && toName === fromName;
@@ -326,29 +326,30 @@ class DragDrop {
     }
 
     dispatchEvent(name, dragEl, fromEl, toEl, evt, oldIndex, newIndex) {
-        const options = this.options;
-        const evtName = `on${util.capitalize(name)}`;
-        const evtHandler = options[evtName];
-        let event;
+        let options = this.options,
+            evtName = `on${util.capitalize(name)}`,
+            evtHandler = options[evtName],
+            _evt;
 
         if (win.CustomEvent) {
-            event = new CustomEvent(name, {
+            _evt = new CustomEvent(name, {
                 bubbles: true,
                 cancelable: true
             });
         } else {
-            event = doc.createEvent('Event');
-            event.initEvent(name, true, true);
+            _evt = doc.createEvent('Event');
+            _evt.initEvent(name, true, true);
         }
 
-        event.from = fromEl;
-        event.to = toEl;
-        event.item = dragEl;
-        event.event = evt;
-        event.oldIndex = oldIndex;
-        event.newIndex = newIndex;
+        _evt.item = dragEl;
+        _evt.from = fromEl;
+        _evt.to = toEl;
+        _evt.clone = cloneEl;
+        _evt.oldIndex = oldIndex;
+        _evt.newIndex = newIndex;
+        _evt.evt = evt;
 
-        evtHandler && evtHandler.call(this, event);
+        evtHandler && evtHandler.call(this, _evt);
     }
 
     _onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt) {
@@ -448,8 +449,8 @@ class DragDrop {
             return false;
         }
 
-        const draggable = dragGroup.checkDrag(this, dragIns, dragEl, evt);
-        const droppable = dropGroup.checkDrop(this, dragIns, dragEl, evt);
+        const draggable = dragGroup.checkDrag(dragIns, this, dragEl, evt);
+        const droppable = dropGroup.checkDrop(dragIns, this, dragEl, evt);
 
         if (inSelf && !sortable || draggable && droppable) {
             if (emptyEl) { // empty case
