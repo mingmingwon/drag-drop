@@ -426,7 +426,7 @@ class DragDrop {
                 }
 
                 dragRect && this.animate(dragRect, dragEl);
-                targetEl && targetRect && this.animate(targetRect, targetEl);
+                targetEl && this.animate(targetRect, targetEl);
             }
 
             !options.dragoverBubble && evt.stopPropagation && evt.stopPropagation();
@@ -446,48 +446,35 @@ class DragDrop {
 
                 $dragEl.appendTo($el);
 
-                this.dispatchEvent('change', dragEl, el, rootEl, evt, oldIndex, $dragEl.index());
-
+                this.dispatchEvent('change', dragEl, rootEl, parentEl, evt, oldIndex, $dragEl.index());
                 return completed.bind(this)(true);
             } else {
-                const direction = this.getDirection();
                 targetRect = DragDrop.getRect(targetEl);
 
-                const $nextEl = $targetEl.next();
-                const elChildren = $el.children().dom;
-                const elLastChild = elChildren[elChildren.length - 1];
-                let after = direction === 1;
+                let direction = this.getDirection(),
+                    after = direction === 1,
+                    move = this.onMove(rootEl, parentEl, dragEl, dragRect, targetEl, targetRect, evt);
+                if (move === false) return;
 
-                const moveVector = this.onMove(rootEl, el, dragEl, dragRect, targetEl, targetRect, evt);
-                if (moveVector === false) return;
-
-                if (moveVector === 1) {
+                if (move === 1) {
                     after = true;
-                } else if (moveVector === -1) {
+                } else if (move === -1) {
                     after = false;
                 }
 
-                if (inSelf) {
-                    dragIns.hideClone();
-                } else {
-                    dragIns.showClone();
-                }
+                inSelf ? dragIns.hideClone() : dragIns.showClone();
 
                 if (after) {
-                    if ($nextEl.length) {
+                    if ($targetEl.next().length) {
                         $dragEl.insertAfter($targetEl);
                     } else {
-                        $dragEl.appendTo($targetEl.parent());
+                        $dragEl.appendTo($parentEl);
                     }
                 } else {
                     $dragEl.insertBefore($targetEl);
                 }
 
-                parentEl = targetEl.parentNode;
-                $parentEl = $(parentEl);
-
-                this.dispatchEvent('change', dragEl, el, rootEl, evt, oldIndex, $dragEl.index());
-
+                this.dispatchEvent('change', dragEl, rootEl, parentEl, evt, oldIndex, $dragEl.index());
                 return completed.bind(this)(true);
             }
         }
