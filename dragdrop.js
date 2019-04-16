@@ -107,7 +107,6 @@ class DragDrop {
             setData(dataTransfer) {
                 dataTransfer.setData('Text', $dragEl.textContent);
             },
-            dragoverBubble: false,
             duration: 100, // ms
             easing: 'cubic-bezier(1, 0, 0, 1)',
             emptyInstanceThreshold: 10 // px
@@ -391,8 +390,6 @@ class DragDrop {
     _onDragging(evt) {
         let el = this.el,
             $el = this.$el,
-            parentEl = el,
-            $parentEl = $el,
             options = this.options,
             { draggable, sortable, group: dropGroup } = options,
             { group: dragGroup } = dragIns.options,
@@ -413,25 +410,10 @@ class DragDrop {
             return false;
         }
 
+        dropIns = this;
         targetEl = target;
         $targetEl = $(target);
         dragRect = DragDrop.getRect(dragEl);
-
-        function completed(insertion) {
-            if (insertion) {
-                if (this !== dropIns && this != dragIns) {
-                    dropIns = this;
-                } else if (this === dragIns) {
-                    dropIns = null;
-                }
-
-                dragRect && this.animate(dragRect, dragEl);
-                targetEl && this.animate(targetRect, targetEl);
-            }
-
-            !options.dragoverBubble && evt.stopPropagation && evt.stopPropagation();
-            return false;
-        }
 
         let allowDrag = dragGroup.checkDrag(dragIns, this, dragEl, evt),
             allowDrop = dropGroup.checkDrop(dragIns, this, dragEl, evt);
@@ -445,9 +427,9 @@ class DragDrop {
                 inSelf ? dragIns.hideClone() : dragIns.showClone();
 
                 $dragEl.appendTo($el);
+                newIndex = $dragEl.index();
 
-                this.dispatchEvent('change', dragEl, rootEl, parentEl, evt, oldIndex, $dragEl.index());
-                return completed.bind(this)(true);
+                this.dispatchEvent('change', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
             } else {
                 targetRect = DragDrop.getRect(targetEl);
 
@@ -474,9 +456,15 @@ class DragDrop {
                     $dragEl.insertBefore($targetEl);
                 }
 
-                this.dispatchEvent('change', dragEl, rootEl, parentEl, evt, oldIndex, $dragEl.index());
-                return completed.bind(this)(true);
+                newIndex = $dragEl.index();
+
+                this.dispatchEvent('change', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
             }
+
+            this.animate(dragRect, dragEl);
+            this.animate(targetRect, targetEl);
+
+            evt.stopPropagation();
         }
     }
 
