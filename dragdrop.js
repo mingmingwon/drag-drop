@@ -482,7 +482,7 @@ class DragDrop {
 
     _onGlobalDragging(evt) {
         evt.dataTransfer.dropEffect = 'move';
-        evt.cancelable && evt.preventDefault();
+        evt.preventDefault();
     }
 
     _onDrop(evt) {
@@ -492,7 +492,7 @@ class DragDrop {
         $rootEl.off('drop', this.handleEvent);
 
         if (moved) {
-            evt.cancelable && evt.preventDefault();
+            evt.preventDefault();
             evt.stopPropagation();
         }
 
@@ -549,10 +549,7 @@ class DragDrop {
     }
 
     getDirection() {
-        const dragElIndex = $dragEl.index();
-        const targetElIndex = $targetEl.index();
-
-        if (dragElIndex < targetElIndex) {
+        if ($dragEl.index() < $targetEl.index()) {
             return 1;
         } else {
             return -1;
