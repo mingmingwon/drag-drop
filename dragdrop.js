@@ -474,43 +474,42 @@ class DragDrop {
     }
 
     _onDrop(evt) {
-        if (!$dragEl) return;
+        if (!dragEl) return;
+
         $dragEl.off('dragend', this.handleEvent);
         $rootEl.off('dragstart', this.onDragStart);
         $rootEl.off('drop', this.handleEvent);
+
+        if (supportPointer) {
+            this.$el.off('pointerup', this.onDrop);
+        } else {
+            this.$el.off('mouseup', this.onDrop);
+        }
 
         if (moved) {
             evt.preventDefault();
             evt.stopPropagation();
         }
 
+        
         dragEl.draggable = false;
         $dragEl.removeClass(this.options.chosenClass);
-
         if (dragIns) {
-            const { dragClass, ghostClass } = dragIns.options;
-            $dragEl.removeClass(dragClass).removeClass(ghostClass);
+            $dragEl.removeClass(dragIns.options.ghostClass);
         }
+        
 
-        this.dispatchEvent('unchoose', dragEl, rootEl, parentEl, evt, oldIndex);
+        this.dispatchEvent('unchoose', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
 
         if (rootEl !== parentEl) {
-            newIndex = $dragEl.index();
-            this.dispatchEvent('add', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
+            dropIns.dispatchEvent('add', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
             this.dispatchEvent('remove', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
-        } else {
-            if (dragEl.nextSibling !== nextEl) {
-                newIndex = $dragEl.index();
-                this.dispatchEvent('update', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
-                this.dispatchEvent('sort', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
-            }
+        } else if (newIndex !== oldIndex) {
+            this.dispatchEvent('update', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
+            this.dispatchEvent('sort', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
         }
 
-        if (dragIns) {
-            newIndex = newIndex || oldIndex;
-            this.dispatchEvent('end', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
-        }
-
+        this.dispatchEvent('end', dragEl, rootEl, parentEl, evt, oldIndex, newIndex || oldIndex);
         this.reset();
     }
 
