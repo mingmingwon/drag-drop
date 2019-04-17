@@ -42,7 +42,7 @@ class DragDrop {
         this.initGroup();
         this.initEvents();
 
-        DragDrop.instances.push(this);
+        this.index = DragDrop.instances.push(this) - 1;
     }
 
     checkDraggable() {
@@ -508,6 +508,26 @@ class DragDrop {
 
         this.dispatchEvent('end', dragEl, rootEl, parentEl, evt, oldIndex, newIndex || oldIndex);
         this.reset();
+    }
+
+    destroy() {
+        let el = this.el,
+            $el = this.$el;
+
+        this.onDrop();
+
+        if (supportPointer) {
+            $el.off('pointerdown', this.onSelect);
+        } else {
+            $el.off('mousedown', this.onSelect);
+        }
+        $el.off('dragenter dragover', this.handleEvent);
+
+        DragDrop.instances.splice(this.index, 1);
+        if (!DragDrop.instances.length) {
+            $doc.off('dragover', docDragOverEvent);
+            docDragOverInit = false;
+        }
     }
 
     reset() {
