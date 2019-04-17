@@ -24,6 +24,9 @@ const util = {
         const toString = Object.prototype.toString;
         return toString.call(obj) === '[object Object]';
     },
+    isHtmlElement(node) {
+        return node instanceof HTMLElement;
+    },
     capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
     },

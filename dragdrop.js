@@ -76,7 +76,7 @@ class DragDrop {
         }
 
         let el = opts.el;
-        if (!util.isString(el)) {
+        if (!util.isString(el) && !util.isHtmlElement(el)) {
             util.throwError('`el` parameter invalid');
         }
 
