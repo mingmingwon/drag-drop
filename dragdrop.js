@@ -286,9 +286,9 @@ class DragDrop {
         });
 
         if (supportPointer) {
-            $el.on('pointerup', this.onDrop);
+            $rootEl.on('pointerup', this.onDrop);
         } else {
-            $el.on('mouseup', this.onDrop);
+            $rootEl.on('mouseup', this.onDrop);
         }
 
         dragEl.draggable = true;
@@ -313,9 +313,8 @@ class DragDrop {
         let { chosenClass, dragClass } = this.options;
 
         cloneEl = dragEl.cloneNode(true);
-        cloneEl.draggable = false;
         $cloneEl = $(cloneEl);
-        $cloneEl.removeClass(chosenClass);
+        $cloneEl.removeAttr('draggable').removeClass(chosenClass);
         this.hideClone();
 
         $dragEl.addClass(dragClass);
@@ -481,9 +480,9 @@ class DragDrop {
         $rootEl.off('drop', this.handleEvent);
 
         if (supportPointer) {
-            this.$el.off('pointerup', this.onDrop);
+            $rootEl.off('pointerup', this.onDrop);
         } else {
-            this.$el.off('mouseup', this.onDrop);
+            $rootEl.off('mouseup', this.onDrop);
         }
 
         if (moved) {
@@ -491,9 +490,7 @@ class DragDrop {
             evt.stopPropagation();
         }
 
-        
-        dragEl.draggable = false;
-        $dragEl.removeClass(this.options.chosenClass);
+        $dragEl.removeAttr('draggable').removeClass(this.options.chosenClass);
         if (dragIns) {
             $dragEl.removeClass(dragIns.options.ghostClass);
         }
