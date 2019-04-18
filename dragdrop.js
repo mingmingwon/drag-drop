@@ -116,6 +116,11 @@ class DragDrop {
             (!opts[key]) && (opts[key] = defaults[key]);
         }
 
+        // special meaning for `>*` 
+        if (opts.draggable === '>*') {
+            opts.draggable = defaults.draggable;
+        }
+
         return opts;
     }
 
