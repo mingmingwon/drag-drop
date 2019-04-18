@@ -1,3 +1,9 @@
+/**
+ * @author Jordan Wang (mingmingwon@gmail.com)
+ * @repository: https://github.com/mingmingwon/drag-drop
+ * @license MIT
+ */
+
 import $ from 'sprint-js';
 import util from './util';
 
@@ -680,6 +686,12 @@ class DragDrop {
             }
         }
     }
+
+    static create(...args) {
+        return new this(...args);
+    }
+
+    static version = '1.0.0'
 }
 
 export default DragDrop;
