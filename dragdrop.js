@@ -147,7 +147,43 @@ class DragDrop {
     initGroup() {
         let group = util.createObj(),
             options = this.options,
-            _group = options.group;
+            _group = options.group,
+            toCheckDrag = drag => (from, to, dragEl, evt) => {
+                let toName = to.options.group.name;
+
+                if (drag == null) {
+                    return true;  // default to true
+                } else if (drag === false || drag === true) {
+                    return drag;
+                } else if (util.isString(drag)) {
+                    return drag === toName;
+                } else if (util.isArray(drag)) {
+                    return drag.includes(toName);
+                } else if (util.isFunction(drag)) {
+                    return toCheckDrag(drag(from, to, dragEl, evt))(from, to, dragEl, evt);
+                } else {
+                    return false;
+                }
+            },
+            toCheckDrop = drop => (from, to, dragEl, evt) => {
+                let fromName = from.options.group.name,
+                    toName = to.options.group.name,
+                    sameGroup = fromName && toName && fromName === toName;
+
+                if (drop == null) {
+                    return sameGroup; // depends whether are same group
+                } else if (drop === false || drop === true) {
+                    return drop;
+                } else if (util.isString(drop)) {
+                    return drop === fromName;
+                } else if (util.isArray(drop)) {
+                    return drop.includes(fromName);
+                } else if (util.isFunction(drop)) {
+                    return toCheckDrop(drop(from, to, dragEl, evt))(from, to, dragEl, evt);
+                } else {
+                    return false;
+                }
+            };
 
         if (util.isPlainObject(_group)) {
             // do nothing here
@@ -159,53 +195,11 @@ class DragDrop {
             _group = {};
         }
 
-        let toDragFn = function(drag) {
-            return function(from, to, dragEl, evt) {
-                let toName = to.options.group.name;
-
-                if (drag == null) {
-                    return true;  // default to true
-                } else if (drag === false || drag === true || drag === 'clone') {
-                    return drag;
-                } else if (util.isString(drag)) {
-                    return drag === toName;
-                } else if (util.isArray(drag)) {
-                    return drag.includes(toName);
-                } else if (util.isFunction(drag)) {
-                    return toDragFn(drag.call(from, ...arguments));
-                } else {
-                    return false;
-                }
-            }
-        }
-
-        let toDropFn = function(drop) {
-            return function(from, to, dragEl, evt) {
-                let toName = to.options.group.name,
-                    fromName = from.options.group.name,
-                    sameGroup = toName && fromName && toName === fromName;
-
-                if (drop == null) {
-                    return sameGroup; // depends whether are same group
-                } else if (drop === false || drop === true) {
-                    return drop;
-                } else if (util.isString(drop)) {
-                    return drop === fromName;
-                } else if (util.isArray(drop)) {
-                    return drop.includes(fromName);
-                } else if (util.isFunction(drop)) {
-                    return toDropFn(drop.call(to, ...arguments));
-                } else {
-                    return false;
-                }
-            }
-        }
-
         group.name = _group.name;
         group.drag = _group.drag;
         group.drop = _group.drop;
-        group.checkDrag = toDragFn(_group.drag);
-        group.checkDrop = toDropFn(_group.drop);
+        group.checkDrag = toCheckDrag(_group.drag);
+        group.checkDrop = toCheckDrop(_group.drop);
 
         options.group = group;
     }
