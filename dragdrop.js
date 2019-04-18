@@ -99,6 +99,7 @@ class DragDrop {
         let defaults = {
             iden: 'dd-id',
             group: null,
+            clone: false,
             sortable: true,
             disabled: false,
             draggable(iden) {
@@ -119,7 +120,7 @@ class DragDrop {
         };
 
         for (let key in defaults) {
-            (!opts[key]) && (opts[key] = defaults[key]);
+            !(key in opts) && (opts[key] = defaults[key]);
         }
 
         // special meaning for `>*` 
@@ -315,12 +316,13 @@ class DragDrop {
     }
 
     _onDragStart(evt) {
-        let { chosenClass, dragClass } = this.options;
+        let { clone, chosenClass, dragClass } = this.options;
 
-        cloneEl = dragEl.cloneNode(true);
-        $cloneEl = $(cloneEl);
-        $cloneEl.removeAttr('draggable').removeClass(chosenClass);
-        this.hideClone();
+        if (clone) {
+            cloneEl = dragEl.cloneNode(true);
+            $cloneEl = $(cloneEl).removeAttr('draggable').removeClass(chosenClass);
+            this.hideClone();
+        }
 
         $dragEl.addClass(dragClass);
         setTimeout(this.onDragStarted, 0, evt);
@@ -396,7 +398,7 @@ class DragDrop {
             $el = this.$el,
             options = this.options,
             { draggable, sortable, group: dropGroup } = options,
-            { group: dragGroup } = dragIns.options,
+            { clone, group: dragGroup } = dragIns.options,
             emptyEl = $el.children().length === 0,
             inSelf = dragIns === this,
             _target = evt.target,
@@ -421,6 +423,7 @@ class DragDrop {
 
         let allowDrag = dragGroup.checkDrag(dragIns, this, dragEl, evt),
             allowDrop = dropGroup.checkDrop(dragIns, this, dragEl, evt);
+
         if (inSelf && sortable || (!inSelf && allowDrag && allowDrop)) {
             if (emptyEl) { // empty case
                 targetRect = DragDrop.getRect(targetEl);
@@ -428,7 +431,7 @@ class DragDrop {
                 let move = this.onMove(rootEl, el, dragEl, dragRect, targetEl, targetRect, evt);
                 if (move === false) return;
 
-                inSelf ? dragIns.hideClone() : dragIns.showClone();
+                clone && (inSelf ? dragIns.hideClone() : dragIns.showClone());
 
                 $dragEl.appendTo($el);
                 newIndex = $dragEl.index();
@@ -448,7 +451,7 @@ class DragDrop {
                     after = false;
                 }
 
-                inSelf ? dragIns.hideClone() : dragIns.showClone();
+                clone && (inSelf ? dragIns.hideClone() : dragIns.showClone());
 
                 if (after) {
                     if ($targetEl.next().length) {
