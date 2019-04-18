@@ -425,6 +425,8 @@ class DragDrop {
             allowDrop = dropGroup.checkDrop(dragIns, this, dragEl, evt);
 
         if (inSelf && sortable || (!inSelf && allowDrag && allowDrop)) {
+            parentEl = el;
+            $parentEl = $el;
             if (emptyEl) { // empty case
                 targetRect = DragDrop.getRect(targetEl);
 
@@ -611,10 +613,6 @@ class DragDrop {
     }
 
     showClone() {
-        if (dragIns && dragIns.options.group.drag !== 'clone') {
-            return;
-        }
-
         if ($nextEl.length) {
             $cloneEl.insertBefore($nextEl);
         } else {
