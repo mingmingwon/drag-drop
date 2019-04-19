@@ -524,7 +524,7 @@ class DragDrop {
         this.dispatchEvent('unchoose', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
 
         if (rootEl !== parentEl) {
-            dropIns.dispatchEvent('add', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
+            dropIns && dropIns.dispatchEvent('add', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
             this.dispatchEvent('remove', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
         } else if (newIndex !== oldIndex) {
             this.dispatchEvent('update', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
