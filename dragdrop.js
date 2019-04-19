@@ -111,6 +111,8 @@ class DragDrop {
             chosenClass: 'dd-chosen',
             ghostClass: 'dd-ghost',
             dragClass: 'dd-drag',
+            fromClass: 'dd-from',
+            toClass: 'dd-to',
             direction: 'vertical',
             setData(dataTransfer) {
                 dataTransfer.setData('Text', $dragEl.textContent);
@@ -281,8 +283,8 @@ class DragDrop {
             options = this.options,
             { exceptEl, chosenClass } = options;
 
-        parentEl = rootEl = el;
-        $parentEl = $rootEl = $el;
+        rootEl = el;
+        $rootEl = $el;
         dragEl = target;
         $dragEl = $(dragEl);
         nextEl = target.nextElementSibling;
@@ -317,7 +319,7 @@ class DragDrop {
     }
 
     _onDragStart(evt) {
-        let { clone, chosenClass, dragClass } = this.options;
+        let { clone, chosenClass, dragClass, fromClass } = this.options;
 
         if (clone) {
             cloneEl = dragEl.cloneNode(true);
@@ -326,6 +328,7 @@ class DragDrop {
         }
 
         $dragEl.addClass(dragClass);
+        $rootEl.addClass(fromClass);
         setTimeout(this.onDragStarted, 0, evt);
     }
 
@@ -398,7 +401,7 @@ class DragDrop {
         let el = this.el,
             $el = this.$el,
             options = this.options,
-            { draggable, sortable, group: dropGroup } = options,
+            { draggable, sortable, group: dropGroup, toClass } = options,
             { clone, group: dragGroup } = dragIns.options,
             emptyEl = $el.children().length === 0,
             inSelf = dragIns === this,
@@ -426,6 +429,13 @@ class DragDrop {
             allowDrop = dropGroup.checkDrop(dragIns, this, dragEl, evt);
 
         if (inSelf && sortable || (!inSelf && allowDrag && allowDrop)) {
+            $el.addClass(toClass);
+            if (inSelf) {
+                $parentEl && $parentEl !== $rootEl && $parentEl.removeClass(toClass);
+            } else {
+                $rootEl.removeClass(toClass);
+            }
+
             parentEl = el;
             $parentEl = $el;
             if (emptyEl) { // empty case
@@ -503,10 +513,14 @@ class DragDrop {
 
         $dragEl.removeAttr('draggable').removeClass(this.options.chosenClass);
         if (dragIns) {
-            $dragEl.removeClass(dragIns.options.ghostClass);
+            let { ghostClass, fromClass, toClass } = dragIns.options;
+            $dragEl.removeClass(ghostClass);
+            $rootEl.removeClass(`${fromClass} ${toClass}`);
+        }
+        if (dropIns) {
+            $parentEl.removeClass(dropIns.options.toClass);
         }
         
-
         this.dispatchEvent('unchoose', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
 
         if (rootEl !== parentEl) {
