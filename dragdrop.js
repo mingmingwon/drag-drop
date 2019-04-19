@@ -562,6 +562,40 @@ class DragDrop {
         targetRect = null;
     }
 
+    detectDirection(el) {
+        let display = el.css('display');
+        if (display === 'flex') {
+            let flexDirection = el.css('flex-direction');
+            return flexDirection.startsWith('column') ? 'vertical' : 'horizontal';
+        }
+
+        let first = el.children().get(0),
+            $first = $(first),
+            second = el.children().eq(1),
+            $second = $(second);
+
+        if (first) {
+            let firstFloat = $first.css('float'),
+                firstDisplay = $first.css('display');
+            if (firstFloat !== 'none') {
+                if (second) {
+                    let secondClear = $second.css('clear');
+                    return secondClear === 'both' || secondClear === firstFloat ? 'vertical' : 'horizontal';
+                } else {
+                    return 'horizontal';
+                }
+            } else {
+                if (firstDisplay === 'block' || firstDisplay === 'flex' || firstDisplay === 'table') {
+                    return 'vertical';
+                } else {
+                    return 'horizontal';
+                }
+            }
+        } else {
+            return 'horizontal';
+        }
+    }
+
     getDirection() {
         if ($dragEl.index() < $targetEl.index()) {
             return 1;
