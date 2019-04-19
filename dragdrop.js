@@ -111,6 +111,7 @@ class DragDrop {
             chosenClass: 'dd-chosen',
             ghostClass: 'dd-ghost',
             dragClass: 'dd-drag',
+            direction: 'vertical',
             setData(dataTransfer) {
                 dataTransfer.setData('Text', $dragEl.textContent);
             },
@@ -442,7 +443,7 @@ class DragDrop {
             } else {
                 targetRect = DragDrop.getRect(targetEl);
 
-                let direction = this.getDirection(),
+                let direction = this.getDirection(evt),
                     after = direction === 1,
                     move = this.onMove(rootEl, parentEl, dragEl, dragRect, targetEl, targetRect, evt);
                 if (move === false) return;
@@ -596,9 +597,15 @@ class DragDrop {
         }
     }
 
-    getDirection() {
-        if ($dragEl.index() < $targetEl.index()) {
-            return 1;
+    getDirection(evt) {
+        let direction = dropIns.options.direction;
+        let { top, left, bottom, right } = DragDrop.getRect(targetEl);
+        let { pageX, pageY } = evt;
+
+        if (direction === 'vertical') {
+            return bottom - pageY <= pageY - top ? 1 : -1;
+        } else if (direction === 'horizontal') {
+            return right - pageX <= pageX - left ? 1 : -1;
         } else {
             return -1;
         }
