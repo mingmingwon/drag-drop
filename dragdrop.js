@@ -1,6 +1,7 @@
 /**
- * @author Jordan Wang (mingmingwon@gmail.com)
- * @repository: https://github.com/mingmingwon/drag-drop
+ * @version 1.0.0
+ * @author Jordan Wang
+ * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
  */
 
