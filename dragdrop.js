@@ -8,10 +8,10 @@
 import $ from 'sprint-js';
 import util from './util';
 
-let rootEl,
-    $rootEl,
-    parentEl,
-    $parentEl,
+let fromEl,
+    $fromEl,
+    toEl,
+    $toEl,
     dragEl,
     $dragEl,
     cloneEl,
@@ -284,8 +284,8 @@ class DragDrop {
             options = this.options,
             { exceptEl, chosenClass } = options;
 
-        rootEl = el;
-        $rootEl = $el;
+        fromEl = el;
+        $fromEl = $el;
         dragEl = target;
         $dragEl = $(dragEl);
         nextEl = target.nextElementSibling;
@@ -296,20 +296,20 @@ class DragDrop {
         });
 
         if (supportPointer) {
-            $rootEl.on('pointerup', this.onDrop);
+            $fromEl.on('pointerup', this.onDrop);
         } else {
-            $rootEl.on('mouseup', this.onDrop);
+            $fromEl.on('mouseup', this.onDrop);
         }
 
         dragEl.draggable = true;
         $dragEl.addClass(chosenClass);
 
-        this.dispatchEvent('choose', dragEl, rootEl, rootEl, evt, oldIndex);
+        this.dispatchEvent('choose', dragEl, fromEl, fromEl, evt, oldIndex);
 
         $dragEl.on('dragend', this.handleEvent); // dragend event on dragEl
 
-        $rootEl.on('dragstart', this.onDragStart); // drop event on rootEl
-        $rootEl.on('drop', this.handleEvent);
+        $fromEl.on('dragstart', this.onDragStart); // drop event on fromEl
+        $fromEl.on('drop', this.handleEvent);
 
         // clear selections before dragstart
         if (win.getSelection) {
@@ -329,7 +329,7 @@ class DragDrop {
         }
 
         $dragEl.addClass(dragClass);
-        $rootEl.addClass(fromClass);
+        $fromEl.addClass(fromClass);
         setTimeout(this.onDragStarted, 0, evt);
     }
 
@@ -344,7 +344,7 @@ class DragDrop {
 
         dragIns = this;
 
-        this.dispatchEvent('start', dragEl, rootEl, rootEl, evt, oldIndex);
+        this.dispatchEvent('start', dragEl, fromEl, fromEl, evt, oldIndex);
     }
 
     _handleEvent(evt) {
@@ -432,17 +432,17 @@ class DragDrop {
         if (inSelf && sortable || (!inSelf && allowDrag && allowDrop)) {
             $el.addClass(toClass);
             if (inSelf) {
-                $parentEl && $parentEl !== $rootEl && $parentEl.removeClass(toClass);
+                $toEl && $toEl !== $fromEl && $toEl.removeClass(toClass);
             } else {
-                $rootEl.removeClass(toClass);
+                $fromEl.removeClass(toClass);
             }
 
-            parentEl = el;
-            $parentEl = $el;
+            toEl = el;
+            $toEl = $el;
             if (emptyEl) { // empty case
                 targetRect = DragDrop.getRect(targetEl);
 
-                let move = this.onMove(rootEl, el, dragEl, dragRect, targetEl, targetRect, evt);
+                let move = this.onMove(fromEl, el, dragEl, dragRect, targetEl, targetRect, evt);
                 if (move === false) return;
 
                 clone && (inSelf ? dragIns.hideClone() : dragIns.showClone());
@@ -450,13 +450,13 @@ class DragDrop {
                 $dragEl.appendTo($el);
                 newIndex = $dragEl.index();
 
-                this.dispatchEvent('change', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
+                this.dispatchEvent('change', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
             } else {
                 targetRect = DragDrop.getRect(targetEl);
 
                 let direction = this.getDirection(evt),
                     after = direction === 1,
-                    move = this.onMove(rootEl, parentEl, dragEl, dragRect, targetEl, targetRect, evt);
+                    move = this.onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt);
                 if (move === false) return;
 
                 if (move === 1) {
@@ -471,7 +471,7 @@ class DragDrop {
                     if ($targetEl.next().length) {
                         $dragEl.insertAfter($targetEl);
                     } else {
-                        $dragEl.appendTo($parentEl);
+                        $dragEl.appendTo($toEl);
                     }
                 } else {
                     $dragEl.insertBefore($targetEl);
@@ -479,7 +479,7 @@ class DragDrop {
 
                 newIndex = $dragEl.index();
 
-                this.dispatchEvent('change', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
+                this.dispatchEvent('change', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
             }
 
             this.animate(dragRect, dragEl);
@@ -498,13 +498,13 @@ class DragDrop {
         if (!dragEl) return;
 
         $dragEl.off('dragend', this.handleEvent);
-        $rootEl.off('dragstart', this.onDragStart);
-        $rootEl.off('drop', this.handleEvent);
+        $fromEl.off('dragstart', this.onDragStart);
+        $fromEl.off('drop', this.handleEvent);
 
         if (supportPointer) {
-            $rootEl.off('pointerup', this.onDrop);
+            $fromEl.off('pointerup', this.onDrop);
         } else {
-            $rootEl.off('mouseup', this.onDrop);
+            $fromEl.off('mouseup', this.onDrop);
         }
 
         if (moved) {
@@ -516,23 +516,23 @@ class DragDrop {
         if (dragIns) {
             let { ghostClass, fromClass, toClass } = dragIns.options;
             $dragEl.removeClass(ghostClass);
-            $rootEl.removeClass(`${fromClass} ${toClass}`);
+            $fromEl.removeClass(`${fromClass} ${toClass}`);
         }
         if (dropIns) {
-            $parentEl.removeClass(dropIns.options.toClass);
+            $toEl.removeClass(dropIns.options.toClass);
         }
         
-        this.dispatchEvent('unchoose', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
+        this.dispatchEvent('unchoose', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
 
-        if (rootEl !== parentEl) {
-            dropIns && dropIns.dispatchEvent('add', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
-            this.dispatchEvent('remove', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
+        if (fromEl !== toEl) {
+            dropIns && dropIns.dispatchEvent('add', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
+            this.dispatchEvent('remove', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
         } else if (newIndex !== oldIndex) {
-            this.dispatchEvent('update', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
-            this.dispatchEvent('sort', dragEl, rootEl, parentEl, evt, oldIndex, newIndex);
+            this.dispatchEvent('update', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
+            this.dispatchEvent('sort', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
         }
 
-        this.dispatchEvent('end', dragEl, rootEl, parentEl, evt, oldIndex, newIndex || oldIndex);
+        this.dispatchEvent('end', dragEl, fromEl, toEl, evt, oldIndex, newIndex || oldIndex);
         this.reset();
     }
 
@@ -557,10 +557,10 @@ class DragDrop {
     }
 
     reset() {
-        rootEl =
-        $rootEl =
-        parentEl =
-        $parentEl =
+        fromEl =
+        $fromEl =
+        toEl =
+        $toEl =
         dragEl =
         $dragEl =
         cloneEl =
@@ -672,7 +672,7 @@ class DragDrop {
         if ($nextEl.length) {
             $cloneEl.insertBefore($nextEl);
         } else {
-            $cloneEl.appendTo($rootEl);
+            $cloneEl.appendTo($fromEl);
         }
 
         $cloneEl.css('display', '');
