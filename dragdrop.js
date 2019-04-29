@@ -46,7 +46,7 @@ class DragDrop {
         let opts = this.normalizeArgs(args);
         this.options = this.mergeOptions(opts);
 
-        this.initEl();
+        this.initDom();
         this.initGroup();
         this.initEvents();
 
@@ -102,14 +102,14 @@ class DragDrop {
             iden: 'dd-id',
             group: null,
             clone: false,
-            sortable: true,
             disabled: false,
+            sortable: true,
             draggable(iden) {
                 return `[${this.iden}="${iden}"]>*`;
             },
-            filter: null,
             handle: null,
             exceptEl: 'a, img', // should be changed to undraggable
+            disabledClass: 'dd-disabled',
             chosenClass: 'dd-chosen',
             ghostClass: 'dd-ghost',
             dragClass: 'dd-drag',
@@ -136,9 +136,9 @@ class DragDrop {
         return opts;
     }
 
-    initEl() {
+    initDom() {
         let options = this.options;
-        let {el, iden, draggable } = options;
+        let { el, iden, disabled, draggable, disabledClass } = options;
 
         this.el = el;
         this.$el = $(el);
@@ -147,6 +147,15 @@ class DragDrop {
 
         if (util.isFunction(draggable)) {
             options.draggable = options.draggable(this.iden); 
+        }
+
+        if (util.isString(disabled)) {
+            disabled.split(/,\s*/).map(sel => {
+                let item = $(sel).closest(draggable, el);
+                item.get(0) && item.addClass(disabledClass);
+            });
+        } else if (disabled === true) {
+            $(options.draggable).addClass(disabledClass);
         }
     }
 
@@ -235,12 +244,12 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options =  this.options;
-        let { disabled, draggable, filter, handle } = options;
+        let { disabled, draggable, disabledClass, handle } = options;
         let { type, target: _target, button } = evt; // keep original as _target
 
         // W3C Standard: left/middle/right 0/1/2
         // IE9Less: left/middle/right 1/4/2
-        if (disabled || button !== 0) {
+        if (disabled === true || button !== 0) {
             return;
         }
 
@@ -252,33 +261,17 @@ class DragDrop {
         if (!target) return;
         if (target.parentNode !== el) return; // Only children draggable
 
-        if (util.isFunction(filter)) {
-            let match = filter.call(this, evt, target, _target);
-            if (match) {
-                this.dispatchEvent('filter', evt, target);
-                evt.preventDefault();
-                return;
-            }
-        } else if (util.isString(filter)) {
-            let match = filter.split(/,\s*/).some(sel => {
-                let item = $(_target).closest(sel, el).get(0);
-                if(item) {
-                    this.dispatchEvent('filter', evt, target);
-                    return true;
-                }
-            });
-
-            if (match) {
-                evt.preventDefault();
-                return;
-            }
+        let $target = $(target);
+        if ($target.hasClass(disabledClass)) {
+            evt.preventDefault();
+            return;
         }
 
         if (handle && !$(_target).closest(handle, el).get(0)) {
             return;
         }
 
-        oldIndex = $(target).index(draggable); // unmatch: -1
+        oldIndex = $target.index(draggable); // unmatch: -1
 
         this.initDragStart(evt, target, oldIndex);
     }
