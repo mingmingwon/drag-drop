@@ -1,5 +1,6 @@
 /**
- * @version 1.0.0
+ * @version 0.0.1
+ * @update 2019/4/29
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -252,13 +253,19 @@ class DragDrop {
         if (target.parentNode !== el) return; // Only children draggable
 
         if (util.isFunction(filter)) {
-            if (filter.call(this, evt, _target, target)) {
+            let match = filter.call(this, evt, target, _target);
+            if (match) {
+                this.dispatchEvent('filter', evt, target);
                 evt.preventDefault();
                 return;
             }
         } else if (util.isString(filter)) {
             let match = filter.split(/,\s*/).some(sel => {
-                return $(_target).closest(sel, el).get(0);
+                let item = $(_target).closest(sel, el).get(0);
+                if(item) {
+                    this.dispatchEvent('filter', evt, target);
+                    return true;
+                }
             });
 
             if (match) {
