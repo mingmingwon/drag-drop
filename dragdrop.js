@@ -263,6 +263,7 @@ class DragDrop {
 
         let $target = $(target);
         if ($target.hasClass(disabledClass)) {
+            this.dispatchEvent('disable', evt, target);
             evt.preventDefault();
             return;
         }
