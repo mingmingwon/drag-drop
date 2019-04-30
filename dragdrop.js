@@ -1,6 +1,6 @@
 /**
- * @version 0.0.1
- * @update 2019/4/29
+ * @version 0.0.2
+ * @update 2019/4/30
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -99,14 +99,11 @@ class DragDrop {
 
     mergeOptions(opts) {
         let defaults = {
-            iden: 'dd-id',
+            iden: 'dd-',
             group: null,
             clone: false,
             disabled: false,
             sortable: true,
-            draggable(iden) {
-                return `[${this.iden}="${iden}"]>*`;
-            },
             handle: null,
             exceptEl: 'a, img', // should be changed to undraggable
             disabledClass: 'dd-disabled',
@@ -142,12 +139,10 @@ class DragDrop {
 
         this.el = el;
         this.$el = $(el);
-        this.iden = util.rndStr();
-        this.$el.attr(iden, this.iden);
+        this.iden = iden + util.uniStr();
+        this.$el.addClass(this.iden);
 
-        if (util.isFunction(draggable)) {
-            options.draggable = options.draggable(this.iden); 
-        }
+        options.draggable = `.${this.iden}>*`;
 
         if (util.isString(disabled)) {
             disabled.split(/,\s*/).map(sel => {
@@ -743,7 +738,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '1.0.0'
+    static version = '0.02'
 }
 
 export default DragDrop;
