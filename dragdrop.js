@@ -63,7 +63,7 @@ class DragDrop {
 
     normalizeArgs(args) {
         let len = args.length;
-        let opts = util.createObj();
+        let opts = util.createObject();
 
         if (len === 0) {
             util.throwError('requires at least one parameter');
@@ -156,7 +156,7 @@ class DragDrop {
     }
 
     initGroup() {
-        let group = util.createObj(),
+        let group = util.createObject(),
             options = this.options,
             _group = options.group,
             toCheckDrag = drag => (from, to, dragEl, evt) => {

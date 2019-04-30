@@ -1,11 +1,11 @@
 const util = {
-    rndStr() {
+    uniStr() {
         return Date.now().toString(32);
     },
     assign(target, ...from) {
         return Object.assign(target, ...from);
     },
-    createObj() {
+    createObject() {
         return Object.create(null);
     },
     throwError(msg) {
