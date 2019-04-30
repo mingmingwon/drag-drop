@@ -98,20 +98,21 @@ class DragDrop {
     }
 
     mergeOptions(opts) {
+        let iden = 'dd-';
         let defaults = {
-            iden: 'dd-',
+            iden,
             group: null,
             clone: false,
             disabled: false,
             sortable: true,
             handle: null,
             exceptEl: 'a, img', // should be changed to undraggable
-            disabledClass: 'dd-disabled',
-            chosenClass: 'dd-chosen',
-            ghostClass: 'dd-ghost',
-            dragClass: 'dd-drag',
-            fromClass: 'dd-from',
-            toClass: 'dd-to',
+            disabledClass: iden + 'disabled',
+            chosenClass: iden + 'chosen',
+            ghostClass: iden + 'ghost',
+            dragClass: iden + 'drag',
+            fromClass: iden + 'from',
+            toClass: iden + 'to',
             direction: 'vertical',
             setData(dataTransfer) {
                 dataTransfer.setData('Text', $dragEl.textContent);
@@ -738,7 +739,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.02'
+    static version = '0.0.2'
 }
 
 export default DragDrop;
