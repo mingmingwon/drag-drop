@@ -1,6 +1,6 @@
 /**
- * @version 0.0.2
- * @update 2019/4/30
+ * @version 0.0.3
+ * @update 2019/05/01
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -108,6 +108,7 @@ class DragDrop {
             handle: null,
             exceptEl: 'a, img', // should be changed to undraggable
             disabledClass: iden + 'disabled',
+            hoverClass: iden + 'hover',
             chosenClass: iden + 'chosen',
             ghostClass: iden + 'ghost',
             dragClass: iden + 'drag',
@@ -219,6 +220,7 @@ class DragDrop {
         });
 
         let $el = this.$el;
+        $el.on('mouseover', this.onHover).on('mouseout', this.onLeave);
         if (supportPointer) {
             $el.on('pointerdown', this.onSelect);
         } else {
@@ -231,16 +233,14 @@ class DragDrop {
         docDragOverInit = true;
     }
 
-    _onSelect(evt) {
+    _onHover(evt) {
         let el = this.el;
         let $el = this.$el;
         let options =  this.options;
-        let { disabled, draggable, disabledClass, handle } = options;
-        let { type, target: _target, button } = evt; // keep original as _target
+        let { disabled, handle, draggable, disabledClass, hoverClass } = options;
+        let { type, target: _target, button } = evt;
 
-        // W3C Standard: left/middle/right 0/1/2
-        // IE9Less: left/middle/right 1/4/2
-        if (disabled === true || button !== 0) {
+        if (disabled === true) {
             return;
         }
 
@@ -248,18 +248,43 @@ class DragDrop {
             return;
         }
 
-        let target = $(_target).closest(draggable, el).get(0);
-        if (!target) return;
-        if (target.parentNode !== el) return; // Only children draggable
-
-        let $target = $(target);
-        if ($target.hasClass(disabledClass)) {
-            this.dispatchEvent('disable', evt, target);
-            evt.preventDefault();
+        if (handle && !$(_target).closest(handle, el).get(0)) {
             return;
         }
 
-        if (handle && !$(_target).closest(handle, el).get(0)) {
+        let target = $(_target).closest(draggable, el).get(0);
+        if (!target) return;
+
+        let $target = $(target);
+        if ($target.hasClass(disabledClass)) {
+            return;
+        }
+
+        $target.addClass(hoverClass);
+        this.$target = $target;
+    }
+
+    _onLeave(evt) {
+        let $target = this.$target;
+        if (!$target) return;
+
+        $target.removeClass(this.options.hoverClass);
+        this.$target = null;
+    }
+
+    _onSelect(evt) {
+        // W3C Standard: left/middle/right 0/1/2
+        // IE9Less: left/middle/right 1/4/2
+        if (evt.button !== 0) return;
+
+        let $target = this.$target;
+        if (!$target) return;
+
+        let target = $target.get(0);
+        let { disabledClass, draggable } = this.options;
+
+        if ($target.hasClass(disabledClass)) {
+            this.dispatchEvent('disable', evt, target);
             return;
         }
 
@@ -734,7 +759,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.2'
+    static version = '0.0.3'
 }
 
 export default DragDrop;
