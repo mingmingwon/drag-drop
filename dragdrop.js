@@ -213,10 +213,10 @@ class DragDrop {
     }
 
     initEvents() {
-        let proto = Object.getPrototypeOf(this);
-        Object.getOwnPropertyNames(proto).map(fn => { // ES6 Class prototype not enumerable
-            if (fn.startsWith('_') && util.isFunction(proto[fn])) {
-                this[fn.slice(1)] = proto[fn].bind(this); // `this` => instance, and able to off event
+        let proto = Object.getPrototypeOf(this); // this.__proto__
+        Object.getOwnPropertyNames(proto).map(prop => { // ES6 Class prototype not enumerable
+            if (prop.startsWith('_') && util.isFunction(proto[prop])) {
+                this[prop.slice(1)] = proto[prop].bind(this); // `this` => instance, and able to off event
             }
         });
 
