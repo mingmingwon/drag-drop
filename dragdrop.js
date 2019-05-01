@@ -36,8 +36,7 @@ let docDragOverInit = false,
     };
 const win = window,
     doc = win.document,
-    $doc = $(doc),
-    supportPointer = 'PointerEvent' in win;
+    $doc = $(doc);
 
 class DragDrop {
     constructor(...args) {
@@ -220,12 +219,9 @@ class DragDrop {
         });
 
         let $el = this.$el;
-        $el.on('mouseover', this.onHover).on('mouseout', this.onLeave);
-        if (supportPointer) {
-            $el.on('pointerdown', this.onSelect);
-        } else {
-            $el.on('mousedown', this.onSelect);
-        }
+        $el.on('mouseover', this.onHover);
+        $el.on('mouseout', this.onLeave);
+        $el.on('mousedown', this.onSelect);
         $el.on('dragenter dragover', this.handleEvent);
 
         if (docDragOverInit) return; // enure just one event binded
@@ -312,11 +308,7 @@ class DragDrop {
             item.draggable = false;
         });
 
-        if (supportPointer) {
-            $fromEl.on('pointerup', this.onDrop);
-        } else {
-            $fromEl.on('mouseup', this.onDrop);
-        }
+        $fromEl.on('mouseup', this.onDrop);
 
         dragEl.draggable = true;
         $dragEl.addClass(chosenClass);
@@ -518,11 +510,7 @@ class DragDrop {
         $fromEl.off('dragstart', this.onDragStart);
         $fromEl.off('drop', this.handleEvent);
 
-        if (supportPointer) {
-            $fromEl.off('pointerup', this.onDrop);
-        } else {
-            $fromEl.off('mouseup', this.onDrop);
-        }
+        $fromEl.off('mouseup', this.onDrop);
 
         if (moved) {
             evt.preventDefault();
@@ -559,11 +547,7 @@ class DragDrop {
 
         this.onDrop();
 
-        if (supportPointer) {
-            $el.off('pointerdown', this.onSelect);
-        } else {
-            $el.off('mousedown', this.onSelect);
-        }
+        $el.off('mousedown', this.onSelect);
         $el.off('dragenter dragover', this.handleEvent);
 
         DragDrop.instances.splice(this.index, 1);
