@@ -131,14 +131,15 @@ class DragDrop {
 
     initDom() {
         let options = this.options;
-        let { el, iden, disabled, draggable, disabledClass } = options;
+        let { el, iden, disabled, disabledClass } = options;
 
         this.el = el;
         this.$el = $(el);
         this.iden = iden + util.uniStr();
         this.$el.addClass(this.iden);
 
-        options.draggable = `.${this.iden}>*`;
+        let draggable = `.${this.iden}>*`;
+        options.draggable = draggable;
 
         if (util.isString(disabled)) {
             disabled.split(/,\s*/).map(sel => {
@@ -284,7 +285,7 @@ class DragDrop {
             return;
         }
 
-        oldIndex = $target.index(draggable); // unmatch: -1
+        oldIndex = $target.index(draggable + ':not(.dd-disabled)'); // unmatch: -1
 
         this.initDragStart(evt, target, oldIndex);
     }
@@ -457,7 +458,7 @@ class DragDrop {
                 clone && (inSelf ? dragIns.hideClone() : dragIns.showClone());
 
                 $dragEl.appendTo($el);
-                newIndex = $dragEl.index();
+                newIndex = 0;
 
                 this.dispatchEvent('change', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
             } else {
@@ -486,7 +487,7 @@ class DragDrop {
                     $dragEl.insertBefore($targetEl);
                 }
 
-                newIndex = $dragEl.index();
+                newIndex = $dragEl.index(draggable + ':not(.dd-disabled)');
 
                 this.dispatchEvent('change', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
             }
