@@ -139,7 +139,6 @@ class DragDrop {
         this.$el.addClass(this.iden);
 
         let draggable = `.${this.iden}>*`;
-        options.draggable = draggable;
 
         if (util.isString(disabled)) {
             disabled.split(/,\s*/).map(sel => {
@@ -147,8 +146,10 @@ class DragDrop {
                 item.get(0) && item.addClass(disabledClass);
             });
         } else if (disabled === true) {
-            $(options.draggable).addClass(disabledClass);
+            $(draggable).addClass(disabledClass);
         }
+
+        options.draggable = `${draggable}:not(.${disabledClass})`;
     }
 
     initGroup() {
@@ -285,7 +286,7 @@ class DragDrop {
             return;
         }
 
-        oldIndex = $target.index(draggable + ':not(.dd-disabled)'); // unmatch: -1
+        oldIndex = $target.index(draggable); // unmatch: -1
 
         this.initDragStart(evt, target, oldIndex);
     }
@@ -458,8 +459,7 @@ class DragDrop {
                 clone && (inSelf ? dragIns.hideClone() : dragIns.showClone());
 
                 $dragEl.appendTo($el);
-                newIndex = 0;
-
+                newIndex = $dragEl.index(draggable);
                 this.dispatchEvent('change', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
             } else {
                 targetRect = DragDrop.getRect(targetEl);
@@ -487,7 +487,7 @@ class DragDrop {
                     $dragEl.insertBefore($targetEl);
                 }
 
-                newIndex = $dragEl.index(draggable + ':not(.dd-disabled)');
+                newIndex = $dragEl.index(draggable);
 
                 this.dispatchEvent('change', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
             }
