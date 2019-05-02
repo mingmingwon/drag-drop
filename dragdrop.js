@@ -1,6 +1,6 @@
 /**
- * @version 0.0.3
- * @update 2019/05/01
+ * @version 0.0.4
+ * @update 2019/05/02
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -138,18 +138,19 @@ class DragDrop {
         this.iden = iden + util.uniStr();
         this.$el.addClass(this.iden);
 
-        let draggable = `.${this.iden}>*`;
+        let selector = `.${this.iden}>*`;
 
         if (util.isString(disabled)) {
             disabled.split(/,\s*/).map(sel => {
-                let item = $(sel).closest(draggable, el);
+                let item = $(sel).closest(selector, el);
                 item.get(0) && item.addClass(disabledClass);
             });
         } else if (disabled === true) {
-            $(draggable).addClass(disabledClass);
+            $(selector).addClass(disabledClass);
         }
 
-        options.draggable = `${draggable}:not(.${disabledClass})`;
+        options.selector = selector;
+        options.draggable = `${selector}:not(.${disabledClass})`;
     }
 
     initGroup() {
@@ -235,7 +236,7 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options =  this.options;
-        let { disabled, handle, draggable, disabledClass, hoverClass } = options;
+        let { disabled, handle, selector, disabledClass, hoverClass } = options;
         let { type, target: _target, button } = evt;
 
         if (disabled === true) {
@@ -250,15 +251,14 @@ class DragDrop {
             return;
         }
 
-        let target = $(_target).closest(draggable, el).get(0);
+        let target = $(_target).closest(selector, el).get(0);
         if (!target) return;
 
         let $target = $(target);
-        if ($target.hasClass(disabledClass)) {
-            return;
+        if (!$target.hasClass(disabledClass)) {
+            $target.addClass(hoverClass);
         }
 
-        $target.addClass(hoverClass);
         this.$target = $target;
     }
 
@@ -744,7 +744,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.3'
+    static version = '0.0.4'
 }
 
 export default DragDrop;
