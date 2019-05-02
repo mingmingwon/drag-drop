@@ -42,6 +42,13 @@ const util = {
             evt.initEvent(name, true, true);
         }
         return evt;
+    },
+    clearSelection() {
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        } else if (doc.selection) {
+            document.selection.empty();
+        }
     }
 };
 

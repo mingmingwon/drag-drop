@@ -305,11 +305,7 @@ class DragDrop {
         $fromEl.on('drop', this.handleEvent);
 
         // clear selections before dragstart
-        if (win.getSelection) {
-            win.getSelection().removeAllRanges();
-        } else if (doc.selection) {
-            doc.selection.empty();
-        }
+        util.clearSelection();
     }
 
     _onDragStart(evt) {
