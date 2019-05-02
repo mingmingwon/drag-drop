@@ -9,34 +9,16 @@
 import $ from 'sprint-js';
 import util from './util';
 
-let fromEl,
-    $fromEl,
-    toEl,
-    $toEl,
-    dragEl,
-    $dragEl,
-    cloneEl,
-    $cloneEl,
-    nextEl,
-    $nextEl,
-    targetEl,
-    $targetEl,
-    oldIndex,
-    newIndex,
-    dragIns,
-    dropIns,
-    moved,
-    dragRect,
-    targetRect;
-let docDragOverInit = false,
-    docDragOverEvent = function (evt) {
+let fromEl, $fromEl, toEl, $toEl, dragEl, $dragEl, cloneEl, $cloneEl, nextEl, $nextEl, targetEl, $targetEl, oldIndex, newIndex, dragIns, dropIns, moved, dragRect, targetRect;
+let docDragOverInit = false;
+let docDragOverEvent = function (evt) {
         if (!dragEl) return;
         let dragdrop = DragDrop.detectEmptyInstance(evt);
         dragdrop && dragdrop.onDragging(evt);
     };
-const win = window,
-    doc = win.document,
-    $doc = $(doc);
+const win = window;
+const doc = win.document;
+const $doc = $(doc);
 
 class DragDrop {
     constructor(...args) {
@@ -154,10 +136,10 @@ class DragDrop {
     }
 
     initGroup() {
-        let group = util.createObject(),
-            options = this.options,
-            _group = options.group,
-            toCheckDrag = drag => (from, to, dragEl, evt) => {
+        let group = util.createObject();
+        let options = this.options;
+        let _group = options.group
+        let toCheckDrag = drag => (from, to, dragEl, evt) => {
                 let toName = to.options.group.name;
 
                 if (drag == null) {
@@ -173,8 +155,8 @@ class DragDrop {
                 } else {
                     return false;
                 }
-            },
-            toCheckDrop = drop => (from, to, dragEl, evt) => {
+            };
+        let toCheckDrop = drop => (from, to, dragEl, evt) => {
                 let fromName = from.options.group.name,
                     toName = to.options.group.name,
                     sameGroup = fromName && toName && fromName === toName;
@@ -294,10 +276,10 @@ class DragDrop {
     initDragStart(evt, target, oldIndex) {
         if (dragEl) return;
 
-        let el = this.el,
-            $el = this.$el,
-            options = this.options,
-            { exceptEl, chosenClass } = options;
+        let el = this.el;
+        let $el = this.$el;
+        let options = this.options;
+        let { exceptEl, chosenClass } = options;
 
         fromEl = el;
         $fromEl = $el;
@@ -345,8 +327,8 @@ class DragDrop {
     }
 
     _onDragStarted(evt) {
-        let { dragClass, ghostClass, setData } = this.options,
-            dataTransfer = evt.dataTransfer;
+        let { dragClass, ghostClass, setData } = this.options;
+        let dataTransfer = evt.dataTransfer;
 
         $dragEl.removeClass(dragClass).addClass(ghostClass);
 
@@ -375,10 +357,10 @@ class DragDrop {
     }
 
     dispatchEvent(name, dragEl, fromEl, toEl, evt, oldIndex, newIndex) {
-        let options = this.options,
-            evtName = `on${util.capitalize(name)}`,
-            evtHandler = options[evtName],
-            _evt = util.createEvent(name);
+        let options = this.options;
+        let evtName = `on${util.capitalize(name)}`;
+        let evtHandler = options[evtName];
+        let _evt = util.createEvent(name);
 
         _evt.from = fromEl;
         _evt.to = toEl;
@@ -391,9 +373,9 @@ class DragDrop {
     }
 
     _onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt) {
-        let options = this.options,
-            evtHandler = options.onMove,
-            _evt = util.createEvent('move');
+        let options = this.options;
+        let evtHandler = options.onMove;
+        let _evt = util.createEvent('move');
 
         _evt.from = fromEl;
         _evt.to = toEl;
@@ -410,15 +392,15 @@ class DragDrop {
     }
 
     _onDragging(evt) {
-        let el = this.el,
-            $el = this.$el,
-            options = this.options,
-            { draggable, sortable, group: dropGroup, toClass } = options,
-            { clone, group: dragGroup } = dragIns.options,
-            emptyEl = $el.children().length === 0,
-            inSelf = dragIns === this,
-            _target = evt.target,
-            target;
+        let el = this.el;
+        let $el = this.$el;
+        let options = this.options;
+        let { draggable, sortable, group: dropGroup, toClass } = options
+        let { clone, group: dragGroup } = dragIns.options;
+        let emptyEl = $el.children().length === 0;
+        let inSelf = dragIns === this;
+        let _target = evt.target;
+        let target;
 
         moved = true;
 
@@ -437,8 +419,8 @@ class DragDrop {
         $targetEl = $(target);
         dragRect = DragDrop.getRect(dragEl);
 
-        let allowDrag = dragGroup.checkDrag(dragIns, this, dragEl, evt),
-            allowDrop = dropGroup.checkDrop(dragIns, this, dragEl, evt);
+        let allowDrag = dragGroup.checkDrag(dragIns, this, dragEl, evt);
+        let allowDrop = dropGroup.checkDrop(dragIns, this, dragEl, evt);
 
         if (inSelf && sortable || (!inSelf && allowDrag && allowDrop)) {
             $el.addClass(toClass);
@@ -543,8 +525,8 @@ class DragDrop {
     }
 
     destroy() {
-        let el = this.el,
-            $el = this.$el;
+        let el = this.el;
+        let $el = this.$el;
 
         this.onDrop();
 
@@ -559,25 +541,7 @@ class DragDrop {
     }
 
     reset() {
-        fromEl =
-        $fromEl =
-        toEl =
-        $toEl =
-        dragEl =
-        $dragEl =
-        cloneEl =
-        $cloneEl =
-        nextEl =
-        $nextEl =
-        targetEl =
-        $targetEl =
-        oldIndex =
-        newIndex =
-        dragIns =
-        dropIns =
-        moved =
-        dragRect =
-        targetRect = null;
+        fromEl = $fromEl = toEl = $toEl = dragEl = $dragEl = cloneEl = $cloneEl = nextEl = $nextEl = targetEl = $targetEl = oldIndex = newIndex = dragIns = dropIns = moved = dragRect = targetRect = undefined;
     }
 
     detectDirection(el) {
@@ -587,14 +551,14 @@ class DragDrop {
             return flexDirection.startsWith('column') ? 'vertical' : 'horizontal';
         }
 
-        let first = el.children().get(0),
-            $first = $(first),
-            second = el.children().eq(1),
-            $second = $(second);
+        let first = el.children().get(0);
+        let $first = $(first);
+        let second = el.children().eq(1);
+        let $second = $(second);
 
         if (first) {
-            let firstFloat = $first.css('float'),
-                firstDisplay = $first.css('display');
+            let firstFloat = $first.css('float');
+            let firstDisplay = $first.css('display');
             if (firstFloat !== 'none') {
                 if (second) {
                     let secondClear = $second.css('clear');
@@ -633,19 +597,19 @@ class DragDrop {
 
         if (!duration) return;
 
-        let { top: pTop, left: pLeft, height: pHeight, width: pWidth } = prevRect,
-            $target = $(target),
-            currRect = DragDrop.getRect(target),
-            { top: cTop, left: cLeft, height: cHeight, width: cWidth } = currRect;
+        let { top: pTop, left: pLeft, height: pHeight, width: pWidth } = prevRect;
+        let $target = $(target);
+        let currRect = DragDrop.getRect(target);
+        let { top: cTop, left: cLeft, height: cHeight, width: cWidth } = currRect;
 
         // center point changed vertical or horizontal
         if ((pTop + pHeight / 2) !== (cTop + cHeight / 2) ||
             (pLeft + pWidth / 2) !== (cLeft + cWidth / 2)) {
-            let matrix = DragDrop.matrix(this.el),
-                {a: scaleX = 1, d: scaleY = 1} = matrix,
-                pTransform = `translate3d(${(pLeft - cLeft) / scaleX}px, ${(pTop - cTop) / scaleY}px, 0)`,
-                cTransform = 'translate3d(0, 0, 0)',
-                transition = `transform ${duration}ms ${easing}`;
+            let matrix = DragDrop.matrix(this.el);
+            let {a: scaleX = 1, d: scaleY = 1} = matrix;
+            let pTransform = `translate3d(${(pLeft - cLeft) / scaleX}px, ${(pTop - cTop) / scaleY}px, 0)`;
+            let cTransform = 'translate3d(0, 0, 0)';
+            let transition = `transform ${duration}ms ${easing}`;
 
             $target.css('transition', 'none') // reset transition
             .css('transform', pTransform); // set to prev position
@@ -717,14 +681,14 @@ class DragDrop {
     static instances = [] // store all DragDrop instances
 
     static detectEmptyInstance(evt) { // detect neareast empty instance
-        let { clientX, clientY } = evt,
-            inss = this.instances,
-            len = inss.length;
+        let { clientX, clientY } = evt;
+        let inss = this.instances;
+        let len = inss.length;
 
         for (let i = 0; i < len; i++) {
-            let ins = inss[i],
-                el = ins.el,
-                $el = ins.$el;
+            let ins = inss[i];
+            let el = ins.el;
+            let $el = ins.$el;
 
             if ($el.children().length > 0) continue;
 
