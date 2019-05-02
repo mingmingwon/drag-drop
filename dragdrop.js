@@ -270,10 +270,10 @@ class DragDrop {
 
         oldIndex = $target.index(draggable); // unmatch: -1
 
-        this.initDragStart(evt, target, oldIndex);
+        this.initDragStart(evt, target);
     }
 
-    initDragStart(evt, target, oldIndex) {
+    initDragStart(evt, target) {
         if (dragEl) return;
 
         let el = this.el;
@@ -285,9 +285,9 @@ class DragDrop {
         $fromEl = $el;
         dragEl = target;
         $dragEl = $(dragEl);
-        nextEl = target.nextElementSibling;
-        $nextEl = $(nextEl);
-        
+        $nextEl = $dragEl.next();
+        nextEl = $nextEl.get(0);
+
         $dragEl.find(exceptEl).each((index, item) => {
             item.draggable = false;
         });
@@ -297,12 +297,12 @@ class DragDrop {
         dragEl.draggable = true;
         $dragEl.addClass(chosenClass);
 
-        this.dispatchEvent('choose', dragEl, fromEl, fromEl, evt, oldIndex);
-
-        $dragEl.on('dragend', this.handleEvent); // dragend event on dragEl
+        this.dispatchEvent('choose', evt, dragEl);
 
         $fromEl.on('dragstart', this.onDragStart); // drop event on fromEl
         $fromEl.on('drop', this.handleEvent);
+
+        $dragEl.on('dragend', this.handleEvent); // dragend event on dragEl
 
         // clear selections before dragstart
         util.clearSelection();
@@ -352,34 +352,34 @@ class DragDrop {
         }
     }
 
-    dispatchEvent(name, dragEl, fromEl, toEl, evt, oldIndex, newIndex) {
+    dispatchEvent(name, evt, target) {
         let options = this.options;
         let evtName = `on${util.capitalize(name)}`;
         let evtHandler = options[evtName];
         let _evt = util.createEvent(name);
 
+        _evt.evt = evt;
         _evt.from = fromEl;
         _evt.to = toEl;
-        _evt.item = dragEl;
+        _evt.item = target;
         _evt.oldIndex = oldIndex;
         _evt.newIndex = newIndex;
-        _evt.evt = evt;
 
         evtHandler && evtHandler.call(this, _evt);
     }
 
-    _onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt) {
+    _onMove(evt, target) {
         let options = this.options;
         let evtHandler = options.onMove;
         let _evt = util.createEvent('move');
 
+        _evt.evt = evt;
         _evt.from = fromEl;
         _evt.to = toEl;
-        _evt.dragged = dragEl;
+        _evt.dragged = target;
         _evt.draggedRect = dragRect;
         _evt.related = targetEl || toEl;
         _evt.relatedRect = targetRect || DragDrop.getRect(toEl);
-        _evt.evt = evt;
 
         return evtHandler && evtHandler.call(this, _evt);
         // false: cancel
