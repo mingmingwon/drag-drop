@@ -251,7 +251,7 @@ class DragDrop {
         if (!target) return;
 
         let $target = $(target);
-        if (!$target.hasClass(affixedClass) && !$target.hasClass(disabledClass)) {
+        if (!$target.hasClass(affixedClass) && !$target.hasClass(disabledClass) && !dragEl) {
             $target.addClass(hoverClass);
         }
 
@@ -275,7 +275,10 @@ class DragDrop {
         if (!$target) return;
 
         let target = $target.get(0);
-        let { affixedClass, disabledClass, draggable } = this.options;
+        let { hoverClass, affixedClass, disabledClass, draggable } = this.options;
+
+        $target.removeClass(hoverClass);
+        this.$target = null;
 
         if ($target.hasClass(affixedClass)) {
             this.dispatchEvent('affix', evt, target);
@@ -297,7 +300,7 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options = this.options;
-        let { exceptEl, chosenClass } = options;
+        let { exceptEl, hoverClass, chosenClass } = options;
 
         fromEl = el;
         $fromEl = $el;
@@ -514,7 +517,23 @@ class DragDrop {
             evt.stopPropagation();
         }
 
-        $dragEl.removeAttr('draggable').removeClass(this.options.chosenClass);
+        let el =  this.el;
+        let { draggable, handle, chosenClass, hoverClass } = this.options;
+        $dragEl.removeAttr('draggable').removeClass(chosenClass);
+
+        let $target;
+        if (handle) {
+            $target = $(evt.target).closest(handle, el);
+            if ($target.get(0)) $target = $target.closest(draggable, el);
+        } else {
+            $target = $(evt.target).closest(handle, el);
+        }
+        let target = $target.get(0);
+        if (target && DragDrop.inTarget(evt, target)) {
+             $target.addClass(hoverClass);
+             this.$target = $target;
+        }
+
         if (dragIns) {
             let { ghostClass, fromClass, toClass } = dragIns.options;
             $dragEl.removeClass(ghostClass);
