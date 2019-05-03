@@ -463,9 +463,12 @@ class DragDrop {
             } else {
                 targetRect = DragDrop.getRect(targetEl);
 
-                let direction = this.getDirection(evt),
-                    after = direction === 1,
-                    move = this.onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt);
+                // method 1 (universal): based on cursor position on targetEl
+                let after = this.getDirection(evt) === 1;
+                // method 2 (suitable for in self): based on previous relative position
+                // let after = this.getPosition() === -1;
+
+                let move = this.onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt);
                 if (move === false) return;
 
                 if (move === 1) {
@@ -477,11 +480,7 @@ class DragDrop {
                 clone && (inSelf ? dragIns.hideClone() : dragIns.showClone());
 
                 if (after) {
-                    if ($targetEl.next().length) {
-                        $dragEl.insertAfter($targetEl);
-                    } else {
-                        $dragEl.appendTo($toEl);
-                    }
+                    $dragEl.insertAfter($targetEl);
                 } else {
                     $dragEl.insertBefore($targetEl);
                 }
@@ -611,6 +610,10 @@ class DragDrop {
         }
     }
 
+    getPosition() {
+        return $dragEl.index() > $targetEl.index() ? 1 : -1;
+    }
+
     getDirection(evt) {
         let direction = dropIns.options.direction;
         let { top, left, bottom, right } = DragDrop.getRect(targetEl);
@@ -691,6 +694,12 @@ class DragDrop {
 
         return el.getBoundingClientRect();
     }
+
+    static inTarget(evt, el) {
+        let { pageX, pageY } = evt;
+        let { top, left, bottom, right } = this.getRect(el);
+        return !!(top <= pageY && bottom >= pageY && left <= pageX && right >= pageX);
+    } 
 
     static matrix(el) {
         let appliedTransforms = '';
