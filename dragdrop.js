@@ -9,7 +9,7 @@
 import $ from 'sprint-js';
 import util from './util';
 
-let fromEl, $fromEl, toEl, $toEl, dragEl, $dragEl, cloneEl, $cloneEl, nextEl, $nextEl, targetEl, $targetEl, oldIndex, newIndex, dragIns, dropIns, moved, dragRect, targetRect;
+let fromEl, $fromEl, toEl, $toEl, dragEl, $dragEl, cloneEl, $cloneEl, nextEl, $nextEl, targetEl, $targetEl, oldIndex, newIndex, dragIns, dropIns, dragRect, targetRect;
 let docDragOverInit = false;
 let docDragOverEvent = function (evt) {
         if (!dragEl) return;
@@ -422,8 +422,6 @@ class DragDrop {
         let _target = evt.target;
         let target;
 
-        moved = true;
-
         if (!emptyEl) {
             target = $(_target).closest(replaceable, el).get(0);
         } else {
@@ -506,11 +504,6 @@ class DragDrop {
         $fromEl.off('drop', this.handleEvent);
 
         $fromEl.off('mouseup', this.onDrop);
-
-        if (moved) {
-            evt.preventDefault();
-            evt.stopPropagation();
-        }
 
         let el =  this.el;
         let { draggable, handle, chosenClass, hoverClass } = this.options;
