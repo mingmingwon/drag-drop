@@ -98,8 +98,8 @@ class DragDrop {
             fromClass: iden + 'from',
             toClass: iden + 'to',
             direction: 'vertical',
-            setData(dataTransfer) {
-                dataTransfer.setData('Text', $dragEl.textContent);
+            setData(dataTransfer, dragEl) {
+                dataTransfer.setData('Text', dragEl.textContent);
             },
             duration: 100, // ms
             easing: 'cubic-bezier(1, 0, 0, 1)',
@@ -333,8 +333,9 @@ class DragDrop {
         let { clone, chosenClass, dragClass, fromClass } = this.options;
 
         if (clone) {
-            cloneEl = dragEl.cloneNode(true);
-            $cloneEl = $(cloneEl).removeAttr('draggable').removeClass(chosenClass);
+            $cloneEl = $dragEl.clone(true);
+            cloneEl = $cloneEl.get(0);
+            $(cloneEl).removeAttr('draggable').removeClass(chosenClass);
             this.hideClone();
         }
 
@@ -350,14 +351,16 @@ class DragDrop {
         $dragEl.removeClass(dragClass).addClass(ghostClass);
 
         dataTransfer.effectAllowed = 'move';
-        setData && setData.call(this, dataTransfer, dragEl);
+        setData.call(this, dataTransfer, dragEl);
 
         dragIns = this;
 
-        this.dispatchEvent('start', dragEl, fromEl, fromEl, evt, oldIndex);
+        this.dispatchEvent('start', evt, dragEl);
     }
 
     _handleEvent(evt) {
+        if (!dragEl) return;
+
         switch (evt.type) {
             case 'drop':
             case 'dragend':
@@ -365,10 +368,7 @@ class DragDrop {
                 break;
             case 'dragenter':
             case 'dragover':
-                if (dragEl) {
-                    this.onDragging(evt);
-                    this.onGlobalDragging(evt);
-                }
+                this.onDragging(evt);
                 break;
         }
     }
@@ -409,6 +409,9 @@ class DragDrop {
     }
 
     _onDragging(evt) {
+        evt.dataTransfer.dropEffect = 'move';
+        evt.preventDefault();
+
         let el = this.el;
         let $el = this.$el;
         let options = this.options;
@@ -497,14 +500,7 @@ class DragDrop {
         }
     }
 
-    _onGlobalDragging(evt) {
-        evt.dataTransfer.dropEffect = 'move';
-        evt.preventDefault();
-    }
-
     _onDrop(evt) {
-        if (!dragEl) return;
-
         $dragEl.off('dragend', this.handleEvent);
         $fromEl.off('dragstart', this.onDragStart);
         $fromEl.off('drop', this.handleEvent);
