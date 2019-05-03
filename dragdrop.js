@@ -1,6 +1,6 @@
 /**
- * @version 0.0.4
- * @update 2019/05/02
+ * @version 0.0.5
+ * @update 2019/05/03
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -84,10 +84,12 @@ class DragDrop {
             iden,
             group: null,
             clone: false,
-            disabled: false,
+            affixed: null,
+            disabled: null,
             sortable: true,
             handle: null,
             exceptEl: 'a, img', // should be changed to undraggable
+            affixedClass: iden + 'affixed',
             disabledClass: iden + 'disabled',
             hoverClass: iden + 'hover',
             chosenClass: iden + 'chosen',
@@ -113,7 +115,7 @@ class DragDrop {
 
     initDom() {
         let options = this.options;
-        let { el, iden, disabled, disabledClass } = options;
+        let { el, iden, affixed, affixedClass, disabled, disabledClass } = options;
 
         this.el = el;
         this.$el = $(el);
@@ -121,6 +123,17 @@ class DragDrop {
         this.$el.addClass(this.iden);
 
         let selector = `.${this.iden}>*`;
+
+        if (util.isString(affixed)) {
+            let matched = $(selector + affixed);
+            let firstChild = $(selector).first().get(0);
+            let lastChild = $(selector).last().get(0);
+            if (matched.length === 1 && (matched.get(0) === firstChild || matched.get(0) === lastChild)) {
+                matched.addClass(affixedClass);
+            } else {
+                util.throwError('only first or last child can be affixed');
+            }
+        }
 
         if (util.isString(disabled)) {
             disabled.split(/,\s*/).map(sel => {
@@ -132,7 +145,8 @@ class DragDrop {
         }
 
         options.selector = selector;
-        options.draggable = `${selector}:not(.${disabledClass})`;
+        options.draggable = `${selector}:not(.${affixedClass}):not(.${disabledClass})`;
+        options.replaceable = `${selector}:not(.${affixedClass})`;
     }
 
     initGroup() {
@@ -218,7 +232,7 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options =  this.options;
-        let { disabled, handle, selector, disabledClass, hoverClass } = options;
+        let { disabled, handle, selector, affixedClass, disabledClass, hoverClass } = options;
         let { type, target: _target, button } = evt;
 
         if (disabled === true) {
@@ -237,7 +251,7 @@ class DragDrop {
         if (!target) return;
 
         let $target = $(target);
-        if (!$target.hasClass(disabledClass)) {
+        if (!$target.hasClass(affixedClass) && !$target.hasClass(disabledClass)) {
             $target.addClass(hoverClass);
         }
 
@@ -261,8 +275,12 @@ class DragDrop {
         if (!$target) return;
 
         let target = $target.get(0);
-        let { disabledClass, draggable } = this.options;
+        let { affixedClass, disabledClass, draggable } = this.options;
 
+        if ($target.hasClass(affixedClass)) {
+            this.dispatchEvent('affix', evt, target);
+            return;
+        }
         if ($target.hasClass(disabledClass)) {
             this.dispatchEvent('disable', evt, target);
             return;
@@ -391,7 +409,7 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options = this.options;
-        let { draggable, sortable, group: dropGroup, toClass } = options
+        let { replaceable, draggable, sortable, group: dropGroup, toClass } = options
         let { clone, group: dragGroup } = dragIns.options;
         let emptyEl = $el.children().length === 0;
         let inSelf = dragIns === this;
@@ -401,7 +419,7 @@ class DragDrop {
         moved = true;
 
         if (!emptyEl) {
-            target = $(_target).closest(draggable, el).get(0);
+            target = $(_target).closest(replaceable, el).get(0);
         } else {
             target = _target;
         }
@@ -704,7 +722,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.4'
+    static version = '0.0.5'
 }
 
 export default DragDrop;
