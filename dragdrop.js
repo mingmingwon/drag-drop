@@ -435,57 +435,56 @@ class DragDrop {
         let allowDrag = fromGroup.checkDrag(fromIns, this, dragEl, evt);
         let allowDrop = toGroup.checkDrop(fromIns, this, dragEl, evt);
 
-        if ((isSelf && sortable) || (!isSelf && allowDrag && allowDrop)) {
-            toIns = this;
-            targetEl = isEmpty ? el : target;
-            $targetEl = isEmpty? $el : $(target);
+        if (isSelf && !sortable) return;
+        if (!isSelf && (!allowDrag || !allowDrop)) return;
 
-            $el.addClass(toClass);
-            if (isSelf) {
-                $toEl && $toEl !== $fromEl && $toEl.removeClass(toClass);
-            } else {
-                $fromEl.removeClass(toClass);
-            }
+        toIns = this;
+        targetEl = isEmpty ? el : target;
+        $targetEl = isEmpty? $el : $(target);
 
-            toEl = el;
-            $toEl = $el;
-            dragRect = DragDrop.getRect(dragEl);
-            targetRect = DragDrop.getRect(targetEl);
-
-            if (isEmpty) { // empty case
-                let move = this.onMove(evt);
-                if (move === false) return;
-
-                clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
-
-                $dragEl.appendTo($toEl);
-            } else {
-                // method 1 (universal): based on cursor position on targetEl
-                let after = this.getDirection(evt) === 1;
-                // method 2 (suitable for in self): based on previous relative position
-                // let after = this.getPosition() === -1;
-
-                let move = this.onMove(evt);
-                if (move === false) return;
-                after = move === 1 ? true : (move === -1 ? false : after);
-
-                clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
-
-                if (after) {
-                    $dragEl.insertAfter($targetEl);
-                } else {
-                    $dragEl.insertBefore($targetEl);
-                }
-            }
-
-            newIndex = $dragEl.index(draggable);
-            this.dispatchEvent('change');
-
-            this.animate(dragRect, dragEl);
-            this.animate(targetRect, targetEl);
-
-            evt.stopPropagation();
+        $el.addClass(toClass);
+        if (isSelf) {
+            $toEl && $toEl !== $fromEl && $toEl.removeClass(toClass);
+        } else {
+            $fromEl.removeClass(toClass);
         }
+
+        toEl = el;
+        $toEl = $el;
+        dragRect = DragDrop.getRect(dragEl);
+        targetRect = DragDrop.getRect(targetEl);
+
+        if (isEmpty) { // empty case
+            let move = this.onMove(evt);
+            if (move === false) return;
+
+            clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
+
+            $dragEl.appendTo($toEl);
+        } else {
+            // method 1 (universal): based on cursor position on targetEl
+            let after = this.getDirection(evt) === 1;
+            // method 2 (suitable for in self): based on previous relative position
+            // let after = this.getPosition() === -1;
+
+            let move = this.onMove(evt);
+            if (move === false) return;
+            after = move === 1 ? true : (move === -1 ? false : after);
+
+            clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
+
+            if (after) {
+                $dragEl.insertAfter($targetEl);
+            } else {
+                $dragEl.insertBefore($targetEl);
+            }
+        }
+
+        newIndex = $dragEl.index(draggable);
+        this.dispatchEvent('change');
+
+        this.animate(dragRect, dragEl);
+        this.animate(targetRect, targetEl);
     }
 
     _onDrop(evt) {
@@ -534,6 +533,10 @@ class DragDrop {
         this.dispatchEvent('end', dragEl, fromEl, toEl, evt, oldIndex, newIndex || oldIndex);
         this.reset();
     }
+    
+    reset() {
+        fromEl = $fromEl = toEl = $toEl = dragEl = $dragEl = cloneEl = $cloneEl = nextEl = $nextEl = targetEl = $targetEl = oldIndex = newIndex = fromIns = toIns = dragRect = targetRect = undefined;
+    }
 
     destroy() {
         let el = this.el;
@@ -541,18 +544,16 @@ class DragDrop {
 
         this.onDrop();
 
+        $el.on('mouseover', this.onHover);
+        $el.on('mouseout', this.onLeave);
         $el.off('mousedown', this.onSelect);
         $el.off('dragenter dragover', this.handleEvent);
 
         DragDrop.instances.splice(this.index, 1);
-        if (!DragDrop.instances.length) {
+        if (DragDrop.instances.length === 0) {
             $doc.off('dragover', docDragOverEvent);
             docDragOverInit = false;
         }
-    }
-
-    reset() {
-        fromEl = $fromEl = toEl = $toEl = dragEl = $dragEl = cloneEl = $cloneEl = nextEl = $nextEl = targetEl = $targetEl = oldIndex = newIndex = fromIns = toIns = dragRect = targetRect = undefined;
     }
 
     detectDirection(el) {
