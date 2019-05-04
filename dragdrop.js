@@ -1,6 +1,6 @@
 /**
- * @version 0.0.5
- * @update 2019/05/03
+ * @version 0.0.6
+ * @update 2019/05/04
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -9,7 +9,7 @@
 import $ from 'sprint-js';
 import util from './util';
 
-let fromEl, $fromEl, toEl, $toEl, dragEl, $dragEl, cloneEl, $cloneEl, nextEl, $nextEl, targetEl, $targetEl, oldIndex, newIndex, dragIns, dropIns, dragRect, targetRect;
+let fromEl, $fromEl, toEl, $toEl, dragEl, $dragEl, cloneEl, $cloneEl, nextEl, $nextEl, targetEl, $targetEl, oldIndex, newIndex, fromIns, toIns, dragRect, targetRect;
 let docDragOverInit = false;
 let docDragOverEvent = function (evt) {
         if (!dragEl) return;
@@ -318,7 +318,7 @@ class DragDrop {
         dragEl.draggable = true;
         $dragEl.addClass(chosenClass);
 
-        this.dispatchEvent('choose', evt, dragEl);
+        this.dispatchEvent('choose', evt);
 
         $fromEl.on('dragstart', this.onDragStart); // drop event on fromEl
         $fromEl.on('drop', this.handleEvent);
@@ -353,9 +353,9 @@ class DragDrop {
         dataTransfer.effectAllowed = 'move';
         setData.call(this, dataTransfer, dragEl);
 
-        dragIns = this;
+        fromIns = this;
 
-        this.dispatchEvent('start', evt, dragEl);
+        this.dispatchEvent('start', evt);
     }
 
     _handleEvent(evt) {
@@ -382,14 +382,14 @@ class DragDrop {
         _evt.evt = evt;
         _evt.from = fromEl;
         _evt.to = toEl;
-        _evt.item = target;
+        _evt.item = target || dragEl;
         _evt.oldIndex = oldIndex;
         _evt.newIndex = newIndex;
 
         evtHandler && evtHandler.call(this, _evt);
     }
 
-    _onMove(evt, target) {
+    _onMove(evt) {
         let options = this.options;
         let evtHandler = options.onMove;
         let _evt = util.createEvent('move');
@@ -397,7 +397,7 @@ class DragDrop {
         _evt.evt = evt;
         _evt.from = fromEl;
         _evt.to = toEl;
-        _evt.dragged = target;
+        _evt.dragged = dragEl;
         _evt.draggedRect = dragRect;
         _evt.related = targetEl || toEl;
         _evt.relatedRect = targetRect || DragDrop.getRect(toEl);
@@ -415,34 +415,33 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options = this.options;
-        let { replaceable, draggable, sortable, group: dropGroup, toClass } = options
-        let { clone, group: dragGroup } = dragIns.options;
-        let emptyEl = $el.children().length === 0;
-        let inSelf = dragIns === this;
+        let { replaceable, draggable, sortable, group: toGroup, toClass } = options;
+        let { clone, group: fromGroup } = fromIns.options;
+        let isEmpty = $el.children().length === 0;
+        let isSelf = fromIns === this;
         let _target = evt.target;
         let target;
 
-        if (!emptyEl) {
+        if (!isEmpty) {
             target = $(_target).closest(replaceable, el).get(0);
         } else {
             target = _target;
         }
 
         if (!target || target === dragEl || target.animating) {
-            return false;
+            return;
         }
 
-        dropIns = this;
-        targetEl = target;
-        $targetEl = $(target);
-        dragRect = DragDrop.getRect(dragEl);
+        let allowDrag = fromGroup.checkDrag(fromIns, this, dragEl, evt);
+        let allowDrop = toGroup.checkDrop(fromIns, this, dragEl, evt);
 
-        let allowDrag = dragGroup.checkDrag(dragIns, this, dragEl, evt);
-        let allowDrop = dropGroup.checkDrop(dragIns, this, dragEl, evt);
+        if ((isSelf && sortable) || (!isSelf && allowDrag && allowDrop)) {
+            toIns = this;
+            targetEl = isEmpty ? el : target;
+            $targetEl = isEmpty? $el : $(target);
 
-        if (inSelf && sortable || (!inSelf && allowDrag && allowDrop)) {
             $el.addClass(toClass);
-            if (inSelf) {
+            if (isSelf) {
                 $toEl && $toEl !== $fromEl && $toEl.removeClass(toClass);
             } else {
                 $fromEl.removeClass(toClass);
@@ -450,46 +449,37 @@ class DragDrop {
 
             toEl = el;
             $toEl = $el;
-            if (emptyEl) { // empty case
-                targetRect = DragDrop.getRect(targetEl);
+            dragRect = DragDrop.getRect(dragEl);
+            targetRect = DragDrop.getRect(targetEl);
 
-                let move = this.onMove(fromEl, el, dragEl, dragRect, targetEl, targetRect, evt);
+            if (isEmpty) { // empty case
+                let move = this.onMove(evt);
                 if (move === false) return;
 
-                clone && (inSelf ? dragIns.hideClone() : dragIns.showClone());
+                clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
 
-                $dragEl.appendTo($el);
-                newIndex = $dragEl.index(draggable);
-                this.dispatchEvent('change', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
+                $dragEl.appendTo($toEl);
             } else {
-                targetRect = DragDrop.getRect(targetEl);
-
                 // method 1 (universal): based on cursor position on targetEl
                 let after = this.getDirection(evt) === 1;
                 // method 2 (suitable for in self): based on previous relative position
                 // let after = this.getPosition() === -1;
 
-                let move = this.onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, evt);
+                let move = this.onMove(evt);
                 if (move === false) return;
+                after = move === 1 ? true : (move === -1 ? false : after);
 
-                if (move === 1) {
-                    after = true;
-                } else if (move === -1) {
-                    after = false;
-                }
-
-                clone && (inSelf ? dragIns.hideClone() : dragIns.showClone());
+                clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
 
                 if (after) {
                     $dragEl.insertAfter($targetEl);
                 } else {
                     $dragEl.insertBefore($targetEl);
                 }
-
-                newIndex = $dragEl.index(draggable);
-
-                this.dispatchEvent('change', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
             }
+
+            newIndex = $dragEl.index(draggable);
+            this.dispatchEvent('change');
 
             this.animate(dragRect, dragEl);
             this.animate(targetRect, targetEl);
@@ -522,19 +512,19 @@ class DragDrop {
              this.$target = $target;
         }
 
-        if (dragIns) {
-            let { ghostClass, fromClass, toClass } = dragIns.options;
+        if (fromIns) {
+            let { ghostClass, fromClass, toClass } = fromIns.options;
             $dragEl.removeClass(ghostClass);
             $fromEl.removeClass(`${fromClass} ${toClass}`);
         }
-        if (dropIns) {
-            $toEl.removeClass(dropIns.options.toClass);
+        if (toIns) {
+            $toEl.removeClass(toIns.options.toClass);
         }
         
         this.dispatchEvent('unchoose', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
 
         if (fromEl !== toEl) {
-            dropIns && dropIns.dispatchEvent('add', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
+            toIns && toIns.dispatchEvent('add', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
             this.dispatchEvent('remove', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
         } else if (newIndex !== oldIndex) {
             this.dispatchEvent('update', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
@@ -562,7 +552,7 @@ class DragDrop {
     }
 
     reset() {
-        fromEl = $fromEl = toEl = $toEl = dragEl = $dragEl = cloneEl = $cloneEl = nextEl = $nextEl = targetEl = $targetEl = oldIndex = newIndex = dragIns = dropIns = moved = dragRect = targetRect = undefined;
+        fromEl = $fromEl = toEl = $toEl = dragEl = $dragEl = cloneEl = $cloneEl = nextEl = $nextEl = targetEl = $targetEl = oldIndex = newIndex = fromIns = toIns = dragRect = targetRect = undefined;
     }
 
     detectDirection(el) {
@@ -604,7 +594,7 @@ class DragDrop {
     }
 
     getDirection(evt) {
-        let direction = dropIns.options.direction;
+        let direction = toIns.options.direction;
         let { top, left, bottom, right } = DragDrop.getRect(targetEl);
         let { pageX, pageY } = evt;
 
@@ -739,7 +729,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.5'
+    static version = '0.0.6'
 }
 
 export default DragDrop;
