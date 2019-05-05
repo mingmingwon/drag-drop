@@ -1,6 +1,6 @@
 /**
- * @version 0.0.6
- * @update 2019/05/04
+ * @version 0.0.7
+ * @update 2019/05/05
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -320,10 +320,9 @@ class DragDrop {
 
         this.dispatchEvent('choose', evt);
 
-        $fromEl.on('dragstart', this.onDragStart); // drop event on fromEl
+        $dragEl.on('dragstart', this.onDragStart);
+        $dragEl.on('dragend', this.handleEvent);
         $fromEl.on('drop', this.handleEvent);
-
-        $dragEl.on('dragend', this.handleEvent); // dragend event on dragEl
 
         // clear selections before dragstart
         util.clearSelection();
@@ -488,16 +487,18 @@ class DragDrop {
     }
 
     _onDrop(evt) {
+        $dragEl.off('dragstart', this.onDragStart);
         $dragEl.off('dragend', this.handleEvent);
-        $fromEl.off('dragstart', this.onDragStart);
         $fromEl.off('drop', this.handleEvent);
-
         $fromEl.off('mouseup', this.onDrop);
 
-        let el =  this.el;
-        let { draggable, handle, chosenClass, hoverClass } = this.options;
-        $dragEl.removeAttr('draggable').removeClass(chosenClass);
+        let { ghostClass, chosenClass, handle, draggable, hoverClass, fromClass, toClass } = this.options;
+        $dragEl.removeAttr('draggable').removeClass(`${ghostClass} ${chosenClass}`);
+        $fromEl.removeClass(`${fromClass} ${toClass}`);
 
+        toIns && $toEl.removeClass(toIns.options.toClass);
+
+        let el =  this.el;
         let $target;
         if (handle) {
             $target = $(evt.target).closest(handle, el);
@@ -511,29 +512,21 @@ class DragDrop {
              this.$target = $target;
         }
 
+        this.dispatchEvent('unchoose');
+
         if (fromIns) {
-            let { ghostClass, fromClass, toClass } = fromIns.options;
-            $dragEl.removeClass(ghostClass);
-            $fromEl.removeClass(`${fromClass} ${toClass}`);
-        }
-        if (toIns) {
-            $toEl.removeClass(toIns.options.toClass);
-        }
-        
-        this.dispatchEvent('unchoose', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
-
-        if (fromEl !== toEl) {
-            toIns && toIns.dispatchEvent('add', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
-            this.dispatchEvent('remove', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
-        } else if (newIndex !== oldIndex) {
-            this.dispatchEvent('update', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
-            this.dispatchEvent('sort', dragEl, fromEl, toEl, evt, oldIndex, newIndex);
+            if (toIns && fromIns !== toIns) {
+                fromIns.dispatchEvent('del');
+                toIns.dispatchEvent('add');
+            } else if (newIndex != null && newIndex !== oldIndex) {
+                fromIns.dispatchEvent('sort');
+            }
         }
 
-        this.dispatchEvent('end', dragEl, fromEl, toEl, evt, oldIndex, newIndex || oldIndex);
+        this.dispatchEvent('end');
         this.reset();
     }
-    
+
     reset() {
         fromEl = $fromEl = toEl = $toEl = dragEl = $dragEl = cloneEl = $cloneEl = nextEl = $nextEl = targetEl = $targetEl = oldIndex = newIndex = fromIns = toIns = dragRect = targetRect = undefined;
     }
@@ -730,7 +723,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.6'
+    static version = '0.0.7'
 }
 
 export default DragDrop;
