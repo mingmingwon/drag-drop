@@ -12,10 +12,10 @@ import util from './util';
 let fromEl, $fromEl, toEl, $toEl, dragEl, $dragEl, cloneEl, $cloneEl, nextEl, $nextEl, targetEl, $targetEl, oldIndex, newIndex, fromIns, toIns, dragRect, targetRect;
 let docDragOverInit = false;
 let docDragOverEvent = function (evt) {
-        if (!dragEl) return;
-        let dragdrop = DragDrop.detectEmptyInstance(evt);
-        dragdrop && dragdrop.onDragging(evt);
-    };
+    if (!dragEl) return;
+    let dragdrop = DragDrop.detectEmptyInstance(evt);
+    dragdrop && dragdrop.onDragging(evt);
+};
 const win = window;
 const doc = win.document;
 const $doc = $(doc);
@@ -461,10 +461,9 @@ class DragDrop {
 
             $dragEl.appendTo($toEl);
         } else {
-            // method 1 (universal): based on cursor position on targetEl
-            let after = this.getDirection(evt) === 1;
+            // method 1 (suitable for not in self): based on cursor position on targetEl
             // method 2 (suitable for in self): based on previous relative position
-            // let after = this.getPosition() === -1;
+            let after = this.getDirection(evt, isSelf) === 1;
 
             let move = this.onMove(evt);
             if (move === false) return;
@@ -583,11 +582,11 @@ class DragDrop {
         }
     }
 
-    getPosition() {
-        return $dragEl.index() > $targetEl.index() ? 1 : -1;
-    }
+    getDirection(evt, isSelf) {
+        if (isSelf) {
+            return $dragEl.index() < $targetEl.index() ? 1 : -1;
+        }
 
-    getDirection(evt) {
         let direction = toIns.options.direction;
         let { top, left, bottom, right } = DragDrop.getRect(targetEl);
         let { pageX, pageY } = evt;
