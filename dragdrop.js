@@ -221,7 +221,7 @@ class DragDrop {
         $el.on('mouseover', this.onHover);
         $el.on('mouseout', this.onLeave);
         $el.on('mousedown', this.onSelect);
-        $el.on('dragenter dragover', this.handleEvent);
+        $el.on('dragover', this.handleEvent);
 
         if (docDragOverInit) return; // enure just one event binded
         $doc.on('dragover', docDragOverEvent);
@@ -365,7 +365,6 @@ class DragDrop {
             case 'dragend':
                 this.onDrop(evt);
                 break;
-            case 'dragenter':
             case 'dragover':
                 this.onDragging(evt);
                 break;
@@ -539,7 +538,7 @@ class DragDrop {
         $el.on('mouseover', this.onHover);
         $el.on('mouseout', this.onLeave);
         $el.off('mousedown', this.onSelect);
-        $el.off('dragenter dragover', this.handleEvent);
+        $el.off('dragover', this.handleEvent);
 
         DragDrop.instances.splice(this.index, 1);
         if (DragDrop.instances.length === 0) {
