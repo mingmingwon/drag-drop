@@ -1,6 +1,6 @@
 /**
- * @version 0.0.7
- * @update 2019/05/05
+ * @version 0.0.8
+ * @update 2019/05/06
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -221,7 +221,7 @@ class DragDrop {
         $el.on('mouseover', this.onHover);
         $el.on('mouseout', this.onLeave);
         $el.on('mousedown', this.onSelect);
-        $el.on('dragenter dragover', this.handleEvent);
+        $el.on('dragenter dragover', this.onDragging);
 
         if (docDragOverInit) return; // enure just one event binded
         $doc.on('dragover', docDragOverEvent);
@@ -321,8 +321,8 @@ class DragDrop {
         this.dispatchEvent('choose', evt);
 
         $dragEl.on('dragstart', this.onDragStart);
-        $dragEl.on('dragend', this.handleEvent);
-        $fromEl.on('drop', this.handleEvent);
+        $dragEl.on('dragend', this.onDrop);
+        $fromEl.on('drop', this.onDrop);
 
         // clear selections before dragstart
         util.clearSelection();
@@ -355,21 +355,6 @@ class DragDrop {
         fromIns = this;
 
         this.dispatchEvent('start', evt);
-    }
-
-    _handleEvent(evt) {
-        if (!dragEl) return;
-
-        switch (evt.type) {
-            case 'drop':
-            case 'dragend':
-                this.onDrop(evt);
-                break;
-            case 'dragenter':
-            case 'dragover':
-                this.onDragging(evt);
-                break;
-        }
     }
 
     dispatchEvent(name, evt, target) {
@@ -486,9 +471,11 @@ class DragDrop {
     }
 
     _onDrop(evt) {
+        if (!dragEl) return;
+
         $dragEl.off('dragstart', this.onDragStart);
-        $dragEl.off('dragend', this.handleEvent);
-        $fromEl.off('drop', this.handleEvent);
+        $dragEl.off('dragend', this.onDrop);
+        $fromEl.off('drop', this.onDrop);
         $fromEl.off('mouseup', this.onDrop);
 
         let { ghostClass, chosenClass, handle, draggable, hoverClass, fromClass, toClass } = this.options;
@@ -539,7 +526,7 @@ class DragDrop {
         $el.on('mouseover', this.onHover);
         $el.on('mouseout', this.onLeave);
         $el.off('mousedown', this.onSelect);
-        $el.off('dragenter dragover', this.handleEvent);
+        $el.off('dragenter dragover', this.onDragging);
 
         DragDrop.instances.splice(this.index, 1);
         if (DragDrop.instances.length === 0) {
@@ -722,7 +709,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.7'
+    static version = '0.0.8'
 }
 
 export default DragDrop;
