@@ -101,8 +101,8 @@ class DragDrop {
             setData(dataTransfer, dragEl) {
                 dataTransfer.setData('Text', dragEl.textContent);
             },
-            duration: 100, // ms
-            easing: 'cubic-bezier(1, 0, 0, 1)',
+            duration: 0, // ms
+            timingFunction: 'ease', // namely css transition-timing-function
             emptyInstanceThreshold: 10 // px
         };
 
@@ -393,6 +393,8 @@ class DragDrop {
     }
 
     _onDragging(evt) {
+        if (!dragEl) return;
+
         evt.dataTransfer.dropEffect = 'move';
         evt.preventDefault();
 
@@ -424,7 +426,7 @@ class DragDrop {
 
         toIns = this;
         targetEl = isEmpty ? el : target;
-        $targetEl = isEmpty? $el : $(target);
+        $targetEl = isEmpty ? $el : $(target);
 
         $el.addClass(toClass);
         if (isSelf) {
@@ -588,7 +590,7 @@ class DragDrop {
     }
 
     animate(prevRect, target) {
-        let { duration, easing } = this.options;
+        let { duration, timingFunction } = this.options;
 
         if (!duration) return;
 
@@ -604,7 +606,7 @@ class DragDrop {
             let {a: scaleX = 1, d: scaleY = 1} = matrix;
             let pTransform = `translate3d(${(pLeft - cLeft) / scaleX}px, ${(pTop - cTop) / scaleY}px, 0)`;
             let cTransform = 'translate3d(0, 0, 0)';
-            let transition = `transform ${duration}ms ${easing}`;
+            let transition = `transform ${duration}ms ${timingFunction}`;
 
             $target.css('transition', 'none') // reset transition
             .css('transform', pTransform); // set to prev position
