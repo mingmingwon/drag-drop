@@ -1,6 +1,6 @@
 /**
- * @version 0.0.8
- * @update 2019/05/06
+ * @version 0.0.9
+ * @update 2019/05/07
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -401,17 +401,21 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options = this.options;
-        let { replaceable, draggable, sortable, group: toGroup, toClass } = options;
+        let { selector, replaceable, draggable, sortable, group: toGroup, toClass } = options;
         let { clone, group: fromGroup } = fromIns.options;
-        let isEmpty = $el.children().length === 0;
+        let childLen = $el.children().length;
+        let isEmpty = childLen === 0;
+        let isOnly = childLen === 1;
         let isSelf = fromIns === this;
         let _target = evt.target;
         let target;
 
-        if (!isEmpty) {
-            target = $(_target).closest(replaceable, el).get(0);
-        } else {
+        if (isEmpty) {
             target = _target;
+        } else if (isOnly) { // considering the only child is affixed
+            target = $(_target).closest(selector, el).get(0);
+        } else {
+            target = $(_target).closest(replaceable, el).get(0);
         }
 
         if (!target || target === dragEl || target.animating) {
@@ -711,7 +715,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.8'
+    static version = '0.0.9'
 }
 
 export default DragDrop;
