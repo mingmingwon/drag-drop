@@ -1,6 +1,6 @@
 /**
- * @version 0.0.9
- * @update 2019/05/07
+ * @version 0.0.10
+ * @update 2019/05/08
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -494,9 +494,11 @@ class DragDrop {
         let $target;
         if (handle) {
             $target = $(evt.target).closest(handle, el);
-            if ($target.get(0)) $target = $target.closest(draggable, el);
+            if ($target.get(0)) {
+                $target = $target.closest(draggable, el);
+            }
         } else {
-            $target = $(evt.target).closest(handle, el);
+            $target = $(evt.target).closest(draggable, el);
         }
         let target = $target.get(0);
         if (target && DragDrop.inTarget(evt, target)) {
@@ -715,7 +717,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.9'
+    static version = '0.0.10'
 }
 
 export default DragDrop;
