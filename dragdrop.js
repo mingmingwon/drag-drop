@@ -647,7 +647,7 @@ class DragDrop {
         $cloneEl.css('display', '');
     }
 
-    static getRect(el) {
+    static getRect(el, margin) {
         let top, left, bottom, right, height, width;
 
         // 'getBoundingClientRect' in window/document === false
@@ -656,10 +656,18 @@ class DragDrop {
             left = 0;
             height = bottom = win.innerHeight;
             width = right = win.innerWidth;
-            return { top, left, bottom, right, height, width };
+        } else {
+            ({ top, left, bottom, right, height, width } = el.getBoundingClientRect());
+            if (margin) {
+                let $el = $(el);
+                top -= parseInt($el.css('margin-top'));
+                left -= parseInt($el.css('margin-left'));
+                bottom += parseInt($el.css('margin-bottom'));
+                right += parseInt($el.css('margin-right'));
+            }
         }
 
-        return el.getBoundingClientRect();
+        return { top, left, bottom, right, height, width };
     }
 
     static inTarget(evt, el) {
