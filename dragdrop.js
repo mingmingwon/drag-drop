@@ -410,6 +410,14 @@ class DragDrop {
         let _target = evt.target;
         let target;
 
+        if (_target === el) {
+            targetEl = toEl = el;
+            $targetEl = $toEl = $el;
+            $el.off('drop', this.onDrop).on('drop', this.onDrop);
+            dragRect = DragDrop.getRect(dragEl);
+            return;
+        }
+
         if (isEmpty) {
             target = _target;
         } else if (isOnly) { // considering the only child is affixed
@@ -476,6 +484,16 @@ class DragDrop {
 
     _onDrop(evt) {
         if (!dragEl) return;
+        if (fromIns && fromIns !== this && dragEl.parentNode !== toEl) {
+            $dragEl.appendTo($toEl);
+
+            newIndex = $dragEl.index(draggable);
+            this.dispatchEvent('change');
+
+            this.animate(dragRect, dragEl);
+
+            $toEl.off('drop', this.onDrop);
+        }
 
         $dragEl.off('dragstart', this.onDragStart);
         $dragEl.off('dragend', this.onDrop);
