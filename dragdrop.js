@@ -1,6 +1,6 @@
 /**
- * @version 0.0.10
- * @update 2019/05/08
+ * @version 0.0.11
+ * @update 2019/05/09
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -647,7 +647,7 @@ class DragDrop {
         $cloneEl.css('display', '');
     }
 
-    static getRect(el, margin) {
+    static getRect(el, flag) {
         let top, left, bottom, right, height, width;
 
         // 'getBoundingClientRect' in window/document === false
@@ -658,12 +658,18 @@ class DragDrop {
             width = right = win.innerWidth;
         } else {
             ({ top, left, bottom, right, height, width } = el.getBoundingClientRect());
-            if (margin) {
+            if (flag === true) {
                 let $el = $(el);
                 top -= parseInt($el.css('margin-top'));
                 left -= parseInt($el.css('margin-left'));
                 bottom += parseInt($el.css('margin-bottom'));
                 right += parseInt($el.css('margin-right'));
+            } else if (flag === false) {
+                let $el = $(el);
+                top += parseInt($el.css('border-top')) + parseInt($el.css('padding-top'));
+                left += parseInt($el.css('border-left')) + parseInt($el.css('padding-left'));
+                bottom -= parseInt($el.css('border-bottom')) + parseInt($el.css('padding-bottom'));
+                right -= parseInt($el.css('border-right')) + parseInt($el.css('padding-right'));
             }
         }
 
