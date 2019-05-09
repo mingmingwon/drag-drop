@@ -452,9 +452,7 @@ class DragDrop {
 
             $dragEl.appendTo($toEl);
         } else {
-            // method 1 (suitable for not in self): based on cursor position on targetEl
-            // method 2 (suitable for in self): based on previous relative position
-            let after = this.getDirection(evt, isSelf) === 1;
+            let after = this.getPosition(evt, isSelf) === 1;
 
             let move = this.onMove(evt);
             if (move === false) return;
@@ -577,22 +575,12 @@ class DragDrop {
         }
     }
 
-    getDirection(evt, isSelf) {
-        if (isSelf) {
+    getPosition(evt, flag) {
+        if (flag) {
             return $dragEl.index() < $targetEl.index() ? 1 : -1;
         }
 
-        let direction = toIns.options.direction;
-        let { top, left, bottom, right } = DragDrop.getRect(targetEl);
-        let { pageX, pageY } = evt;
-
-        if (direction === 'vertical') {
-            return bottom - pageY <= pageY - top ? 1 : -1;
-        } else if (direction === 'horizontal') {
-            return right - pageX <= pageX - left ? 1 : -1;
-        } else {
-            return -1;
-        }
+        return -1;
     }
 
     animate(prevRect, target) {
@@ -731,7 +719,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.10'
+    static version = '0.0.11'
 }
 
 export default DragDrop;
