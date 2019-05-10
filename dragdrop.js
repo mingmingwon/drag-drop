@@ -93,8 +93,8 @@ class DragDrop {
             disabledClass: iden + 'disabled',
             hoverClass: iden + 'hover',
             activeClass: iden + 'active',
-            ghostClass: iden + 'ghost',
             dragClass: iden + 'drag',
+            ghostClass: iden + 'ghost',
             fromClass: iden + 'from',
             toClass: iden + 'to',
             direction: 'vertical',
@@ -517,7 +517,11 @@ class DragDrop {
             $target = $(evt.target).closest(draggable, el);
         }
         let target = $target.get(0);
-        if (target && DragDrop.inTarget(evt, target)) {
+        if (!target) {
+            target = dragEl;
+            $target = $dragEl;
+        }
+        if (DragDrop.inTarget(evt, target)) {
              $target.addClass(hoverClass);
              this.$target = $target;
         }
