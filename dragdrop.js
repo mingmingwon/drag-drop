@@ -602,7 +602,17 @@ class DragDrop {
             return $dragEl.index() < $targetEl.index() ? 1 : -1;
         }
 
-        return -1;
+        let direction = toIns.options.direction;
+        let { top, left, bottom, right } = DragDrop.getRect(targetEl);
+        let { pageX, pageY } = evt;
+
+        if (direction === 'vertical') {
+            return bottom - pageY <= pageY - top ? 1 : -1;
+        } else if (direction === 'horizontal') {
+            return right - pageX <= pageX - left ? 1 : -1;
+        } else {
+            return -1;
+        }
     }
 
     animate(prevRect, target) {
