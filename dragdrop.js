@@ -1,6 +1,6 @@
 /**
- * @version 0.0.11
- * @update 2019/05/09
+ * @version 0.0.12
+ * @update 2019/05/10
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -92,7 +92,7 @@ class DragDrop {
             affixedClass: iden + 'affixed',
             disabledClass: iden + 'disabled',
             hoverClass: iden + 'hover',
-            chosenClass: iden + 'chosen',
+            activeClass: iden + 'active',
             ghostClass: iden + 'ghost',
             dragClass: iden + 'drag',
             fromClass: iden + 'from',
@@ -300,7 +300,7 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options = this.options;
-        let { exceptEl, hoverClass, chosenClass } = options;
+        let { exceptEl, hoverClass, activeClass } = options;
 
         fromEl = el;
         $fromEl = $el;
@@ -316,9 +316,9 @@ class DragDrop {
         $fromEl.on('mouseup', this.onDrop);
 
         dragEl.draggable = true;
-        $dragEl.addClass(chosenClass);
+        $dragEl.addClass(activeClass);
 
-        this.dispatchEvent('choose', evt);
+        this.dispatchEvent('active', evt);
 
         $dragEl.on('dragstart', this.onDragStart);
         $dragEl.on('dragend', this.onDrop);
@@ -329,12 +329,12 @@ class DragDrop {
     }
 
     _onDragStart(evt) {
-        let { clone, chosenClass, dragClass, fromClass } = this.options;
+        let { clone, activeClass, dragClass, fromClass } = this.options;
 
         if (clone) {
             $cloneEl = $dragEl.clone(true);
             cloneEl = $cloneEl.get(0);
-            $(cloneEl).removeAttr('draggable').removeClass(chosenClass);
+            $(cloneEl).removeAttr('draggable').removeClass(activeClass);
             this.hideClone();
         }
 
@@ -500,8 +500,8 @@ class DragDrop {
         $fromEl.off('drop', this.onDrop);
         $fromEl.off('mouseup', this.onDrop);
 
-        let { ghostClass, chosenClass, handle, draggable, hoverClass, fromClass, toClass } = this.options;
-        $dragEl.removeAttr('draggable').removeClass(`${ghostClass} ${chosenClass}`);
+        let { ghostClass, activeClass, handle, draggable, hoverClass, fromClass, toClass } = this.options;
+        $dragEl.removeAttr('draggable').removeClass(`${ghostClass} ${activeClass}`);
         $fromEl.removeClass(`${fromClass} ${toClass}`);
 
         toIns && $toEl.removeClass(toIns.options.toClass);
@@ -522,7 +522,7 @@ class DragDrop {
              this.$target = $target;
         }
 
-        this.dispatchEvent('unchoose');
+        this.dispatchEvent('deactive');
 
         if (fromIns) {
             if (toIns && fromIns !== toIns) {
@@ -737,7 +737,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.11'
+    static version = '0.0.12'
 }
 
 export default DragDrop;
