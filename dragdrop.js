@@ -32,7 +32,7 @@ class DragDrop {
         let opts = this.normalizeArgs(args);
         this.options = this.mergeOptions(opts);
 
-        this.initDom();
+        this.initDOM();
         this.initGroup();
         this.initEvents();
 
@@ -113,13 +113,15 @@ class DragDrop {
         };
 
         for (let key in defaults) {
-            !(key in opts) && (opts[key] = defaults[key]);
+            if (!key in opts) {
+                opts[key] = defaults[key];
+            }
         }
 
         return opts;
     }
 
-    initDom() {
+    initDOM() {
         let options = this.options;
         let { el, iden, affixed, affixedClass, disabled, disabledClass } = options;
 
@@ -131,13 +133,14 @@ class DragDrop {
         let selector = `.${this.iden}>*`;
 
         if (util.isString(affixed)) {
-            let matched = $(selector + affixed);
-            let firstChild = $(selector).first().get(0);
-            let lastChild = $(selector).last().get(0);
-            if (matched.length === 1 && (matched.get(0) === firstChild || matched.get(0) === lastChild)) {
+            let $matched = $(selector + affixed);
+            let matched = $matched.get(0);
+            let first = $(selector).first().get(0);
+            let last = $(selector).last().get(0);
+            if (matched.length === 1 && (matched === first || matched === last)) {
                 matched.addClass(affixedClass);
             } else {
-                util.throwError('only first or last child can be affixed');
+                util.throwError('only the first or last item can be affixed');
             }
         }
 
