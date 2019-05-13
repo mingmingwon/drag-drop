@@ -1,6 +1,5 @@
 /**
- * @version 0.0.12
- * @update 2019/05/10
+ * @version 0.0.13
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -9,16 +8,22 @@
 import $ from 'sprint-js';
 import util from './util';
 
-let fromEl, $fromEl, toEl, $toEl, dragEl, $dragEl, cloneEl, $cloneEl, nextEl, $nextEl, targetEl, $targetEl, oldIndex, newIndex, fromIns, toIns, dragRect, targetRect;
+let win = window;
+let doc = win.document;
+let $doc = $(doc);
+let fromEl, $fromEl, fromIns, 
+    toEl, $toEl, toIns, 
+    dragEl, $dragEl, dragRect, 
+    cloneEl, $cloneEl, 
+    nextEl, $nextEl, 
+    targetEl, $targetEl, targetRect, 
+    oldIndex, newIndex;
 let docDragOverInit = false;
-let docDragOverEvent = function (evt) {
+let docDragOverEvent = evt => {
     if (!dragEl) return;
     let dragdrop = DragDrop.detectEmptyInstance(evt);
     dragdrop && dragdrop.onDragging(evt);
 };
-const win = window;
-const doc = win.document;
-const $doc = $(doc);
 
 class DragDrop {
     constructor(...args) {
@@ -542,7 +547,13 @@ class DragDrop {
     }
 
     reset() {
-        fromEl = $fromEl = toEl = $toEl = dragEl = $dragEl = cloneEl = $cloneEl = nextEl = $nextEl = targetEl = $targetEl = oldIndex = newIndex = fromIns = toIns = dragRect = targetRect = undefined;
+        fromEl = $fromEl = fromIns = 
+        toEl = $toEl = toIns = 
+        dragEl = $dragEl = dragRect = 
+        cloneEl = $cloneEl = 
+        nextEl = $nextEl = 
+        targetEl = $targetEl = targetRect = 
+        oldIndex = newIndex = undefined;
     }
 
     destroy() {
@@ -725,17 +736,16 @@ class DragDrop {
 
     static detectEmptyInstance(evt) { // detect neareast empty instance
         let { clientX, clientY } = evt;
-        let inss = this.instances;
-        let len = inss.length;
+        let instances = this.instances;
 
-        for (let i = 0; i < len; i++) {
-            let ins = inss[i];
+        for (let i = 0, len = instances.length; i < len; i++) {
+            let ins = instances[i];
             let el = ins.el;
             let $el = ins.$el;
 
             if ($el.children().length > 0) continue;
 
-            let { top, left, bottom, right } = this.getRect(el);
+            let { top, left, bottom, right } = this.getRect(el, true);
             let threshold = ins.options.emptyInstanceThreshold;
 
             let verInside = clientY >= (top - threshold) && clientY <= (bottom + threshold);
@@ -751,7 +761,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.12'
+    static version = '0.0.13'
 }
 
 export default DragDrop;
