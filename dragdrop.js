@@ -161,59 +161,56 @@ class DragDrop {
     initGroup() {
         let group = util.createObject();
         let options = this.options;
-        let _group = options.group
-        let toCheckDrag = drag => (from, to, dragEl, evt) => {
-                let toName = to.options.group.name;
+        let _group = options.group;
+        let toCheckDragFn = drag => (from, to, dragEl, evt) => {
+            let toName = to.options.group.name;
+            if (drag == null) {
+                return true;  // default to true
+            } else if (drag === false || drag === true) {
+                return drag;
+            } else if (util.isString(drag)) {
+                return drag === toName;
+            } else if (util.isArray(drag)) {
+                return drag.includes(toName);
+            } else if (util.isFunction(drag)) {
+                return toCheckDragFn(drag(from, to, dragEl, evt))(from, to, dragEl, evt);
+            } else {
+                return false;
+            }
+        };
+        let toCheckDropFn = drop => (from, to, dragEl, evt) => {
+            let fromName = from.options.group.name;
+            let toName = to.options.group.name;
+            let sameGroup = fromName && toName && fromName === toName;
 
-                if (drag == null) {
-                    return true;  // default to true
-                } else if (drag === false || drag === true) {
-                    return drag;
-                } else if (util.isString(drag)) {
-                    return drag === toName;
-                } else if (util.isArray(drag)) {
-                    return drag.includes(toName);
-                } else if (util.isFunction(drag)) {
-                    return toCheckDrag(drag(from, to, dragEl, evt))(from, to, dragEl, evt);
-                } else {
-                    return false;
-                }
-            };
-        let toCheckDrop = drop => (from, to, dragEl, evt) => {
-                let fromName = from.options.group.name,
-                    toName = to.options.group.name,
-                    sameGroup = fromName && toName && fromName === toName;
+            if (drop == null) {
+                return sameGroup; // depends whether are same group
+            } else if (drop === false || drop === true) {
+                return drop;
+            } else if (util.isString(drop)) {
+                return drop === fromName;
+            } else if (util.isArray(drop)) {
+                return drop.includes(fromName);
+            } else if (util.isFunction(drop)) {
+                return toCheckDropFn(drop(from, to, dragEl, evt))(from, to, dragEl, evt);
+            } else {
+                return false;
+            }
+        };
 
-                if (drop == null) {
-                    return sameGroup; // depends whether are same group
-                } else if (drop === false || drop === true) {
-                    return drop;
-                } else if (util.isString(drop)) {
-                    return drop === fromName;
-                } else if (util.isArray(drop)) {
-                    return drop.includes(fromName);
-                } else if (util.isFunction(drop)) {
-                    return toCheckDrop(drop(from, to, dragEl, evt))(from, to, dragEl, evt);
-                } else {
-                    return false;
-                }
-            };
-
-        if (util.isPlainObject(_group)) {
-            // do nothing here
-        } else if (util.isString(_group)) {
+        if (util.isString(_group)) {
             _group = {
                 name: _group
             };
-        } else {
+        } else if (!util.isPlainObject(_group)) {
             _group = {};
         }
 
         group.name = _group.name;
         group.drag = _group.drag;
         group.drop = _group.drop;
-        group.checkDrag = toCheckDrag(_group.drag);
-        group.checkDrop = toCheckDrop(_group.drop);
+        group.checkDrag = toCheckDragFn(_group.drag);
+        group.checkDrop = toCheckDropFn(_group.drop);
 
         options.group = group;
     }
