@@ -43,17 +43,18 @@ class DragDrop {
         let supportDraggable = 'draggable' in doc.createElement('div');
 
         if (!supportDraggable) {
-            util.throwError('browser doesn\'t support HTML5 Drag and Drop!');
+            util.throwError('doesn\'t support HTML5 Drag and Drop');
         }
     }
 
     normalizeArgs(args) {
         let len = args.length;
-        let opts = util.createObject();
-
         if (len === 0) {
             util.throwError('requires at least one parameter');
-        } else if (len === 1) {
+        }
+
+        let opts = util.createObject();
+        if (len === 1) {
             if (util.isPlainObject(args[0])) {
                 util.assign(opts, args[0]);
             } else {
@@ -65,18 +66,18 @@ class DragDrop {
                     el: args[0]
                 });
             } else {
-                util.throwError('`options` parameter invalid');
+                util.throwError('`options` parameter format invalid');
             }
         }
 
         let el = opts.el;
         if (!util.isString(el) && !util.isHtmlElement(el)) {
-            util.throwError('`el` parameter invalid');
+            util.throwError('`el` parameter format invalid');
         }
 
         el = $(el).get(0);
         if (!el || el.nodeType !== 1) {
-            util.throwError('`el` matches no HTML Element');
+            util.throwError('`el` parameter matches no HTML');
         }
 
         opts.el = el;
