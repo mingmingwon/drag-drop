@@ -1,5 +1,5 @@
 /**
- * @version 0.0.13
+ * @version 0.0.14
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -94,7 +94,6 @@ class DragDrop {
             disabled: null,
             sortable: true,
             handle: null,
-            exceptEl: 'a, img', // should be changed to undraggable
             affixedClass: iden + 'affixed',
             disabledClass: iden + 'disabled',
             hoverClass: iden + 'hover',
@@ -273,7 +272,8 @@ class DragDrop {
         if (!$target) return;
 
         let target = $target.get(0);
-        let { hoverClass, affixedClass, disabledClass, draggable } = this.options;
+        let options = this.options;
+        let { hoverClass, affixedClass, disabledClass, activeClass, draggable } = options;
 
         $target.removeClass(hoverClass);
         this.$target = null;
@@ -287,43 +287,26 @@ class DragDrop {
             return;
         }
 
-        oldIndex = $target.index(draggable); // unmatch: -1
-
-        this.initDragStart(evt, target);
-    }
-
-    initDragStart(evt, target) {
         if (dragEl) return;
 
-        let el = this.el;
-        let $el = this.$el;
-        let options = this.options;
-        let { exceptEl, hoverClass, activeClass } = options;
-
-        fromEl = el;
-        $fromEl = $el;
+        fromEl = this.el;
+        $fromEl = this.$el;
         dragEl = target;
-        $dragEl = $(dragEl);
+        $dragEl = $target;
         $nextEl = $dragEl.next();
         nextEl = $nextEl.get(0);
 
-        $dragEl.find(exceptEl).each((index, item) => {
-            item.draggable = false;
-        });
-
-        $fromEl.on('mouseup', this.onDrop);
-
+        util.clearSelection();
         dragEl.draggable = true;
         $dragEl.addClass(activeClass);
-
-        this.dispatchEvent('active', evt);
 
         $dragEl.on('dragstart', this.onDragStart);
         $dragEl.on('dragend', this.onDrop);
         $fromEl.on('drop', this.onDrop);
+        $fromEl.on('mouseup', this.onDrop);
 
-        // clear selections before dragstart
-        util.clearSelection();
+        oldIndex = $target.index(draggable);
+        this.dispatchEvent('active', evt);
     }
 
     _onDragStart(evt) {
@@ -754,7 +737,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.13'
+    static version = '0.0.14'
 }
 
 export default DragDrop;
