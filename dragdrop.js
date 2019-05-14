@@ -113,7 +113,7 @@ class DragDrop {
         };
 
         for (let key in defaults) {
-            if (!key in opts) {
+            if (!(key in opts)) {
                 opts[key] = defaults[key];
             }
         }
@@ -137,17 +137,17 @@ class DragDrop {
             let matched = $matched.get(0);
             let first = $(selector).first().get(0);
             let last = $(selector).last().get(0);
-            if (matched.length === 1 && (matched === first || matched === last)) {
-                matched.addClass(affixedClass);
+            if ($matched.length === 1 && (matched === first || matched === last)) {
+                $matched.addClass(affixedClass);
             } else {
                 util.throwError('only the first or last item can be affixed');
             }
         }
 
         if (util.isString(disabled)) {
-            disabled.split(/,\s*/).map(sel => {
-                let item = $(sel).closest(selector, el);
-                item.get(0) && item.addClass(disabledClass);
+            disabled.split(/,\s*/).map(item => {
+                let $item = $(selector + item).closest(selector, el);
+                $item.get(0) && $item.addClass(disabledClass);
             });
         } else if (disabled === true) {
             $(selector).addClass(disabledClass);
