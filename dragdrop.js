@@ -239,22 +239,14 @@ class DragDrop {
         let $el = this.$el;
         let options =  this.options;
         let { disabled, handle, selector, affixedClass, disabledClass, hoverClass } = options;
-        let { type, target: _target, button } = evt;
+        let _target = evt.target;
+        
+        if (disabled === true) return;
+        if (_target.isContentEditable) return;
+        if (handle && !$(_target).closest(handle, el).get(0)) return;
 
-        if (disabled === true) {
-            return;
-        }
-
-        if (_target.isContentEditable) {
-            return;
-        }
-
-        if (handle && !$(_target).closest(handle, el).get(0)) {
-            return;
-        }
-
-        let target = $(_target).closest(selector, el).get(0);
-        if (!target) return;
+        let target;
+        if(!(target = $(_target).closest(selector, el).get(0))) return;
 
         let $target = $(target);
         if (!$target.hasClass(affixedClass) && !$target.hasClass(disabledClass) && !dragEl) {
