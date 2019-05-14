@@ -289,6 +289,8 @@ class DragDrop {
 
         if (dragEl) return;
 
+        this.dispatchEvent('active', evt, target);
+
         fromEl = this.el;
         $fromEl = this.$el;
         dragEl = target;
@@ -304,9 +306,6 @@ class DragDrop {
         $dragEl.on('dragend', this.onDrop);
         $fromEl.on('drop', this.onDrop);
         $fromEl.on('mouseup', this.onDrop);
-
-        oldIndex = $target.index(draggable);
-        this.dispatchEvent('active', evt);
     }
 
     _onDragStart(evt) {
@@ -325,7 +324,7 @@ class DragDrop {
     }
 
     _onDragStarted(evt) {
-        let { dragClass, ghostClass, setData } = this.options;
+        let { dragClass, ghostClass, setData, draggable } = this.options;
         let dataTransfer = evt.dataTransfer;
 
         $dragEl.removeClass(dragClass).addClass(ghostClass);
@@ -334,7 +333,7 @@ class DragDrop {
         setData.call(this, dataTransfer, dragEl);
 
         fromIns = this;
-
+        oldIndex = $dragEl.index(draggable);
         this.dispatchEvent('start', evt);
     }
 
@@ -367,10 +366,8 @@ class DragDrop {
         _evt.related = targetEl || toEl;
         _evt.relatedRect = targetRect || DragDrop.getRect(toEl);
 
+        // false: cancel, -1: insert before, 1: insert after
         return evtHandler && evtHandler.call(this, _evt);
-        // false: cancel
-        // -1: insert before target
-        // 1: insert after target
     }
 
     _onDragging(evt) {
