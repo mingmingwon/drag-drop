@@ -100,7 +100,7 @@ class DragDrop {
             ghostClass: iden + 'ghost',
             fromClass: iden + 'from',
             toClass: iden + 'to',
-            direction: 'vertical',
+            direction: null,
             setData(dataTransfer, dragEl) {
                 dataTransfer.setData('Text', dragEl.textContent);
             },
@@ -120,7 +120,7 @@ class DragDrop {
 
     initDOM() {
         let options = this.options;
-        let { el, iden, affixed, affixedClass, disabled, disabledClass } = options;
+        let { el, iden, affixed, affixedClass, disabled, disabledClass, direction } = options;
 
         this.el = el;
         this.$el = $(el);
@@ -153,6 +153,10 @@ class DragDrop {
         options.selector = selector;
         options.draggable = `${selector}:not(.${affixedClass}):not(.${disabledClass})`;
         options.replaceable = `${selector}:not(.${affixedClass})`;
+
+        if (!direction || !['vertical', 'horizontal'].includes(direction)) {
+            options.direction = this.detectDirection(el);
+        }
     }
 
     initGroup() {
@@ -375,7 +379,7 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options = this.options;
-        let { selector, replaceable, draggable, sortable, group: toGroup, toClass } = options;
+        let { replaceable, group: toGroup, sortable, toClass, draggable } = options;
         let { clone, group: fromGroup } = fromIns.options;
         let childLen = $el.children().length;
         let isEmpty = childLen === 0;
@@ -394,8 +398,6 @@ class DragDrop {
 
         if (isEmpty) {
             target = _target;
-        } else if (isOnly) { // considering the only child is affixed
-            target = $(_target).closest(selector, el).get(0);
         } else {
             target = $(_target).closest(replaceable, el).get(0);
         }
@@ -426,22 +428,17 @@ class DragDrop {
         dragRect = DragDrop.getRect(dragEl);
         targetRect = DragDrop.getRect(targetEl);
 
-        if (isEmpty) { // empty case
-            let move = this.onMove(evt);
-            if (move === false) return;
-
+        let move = this.onMove(evt);
+        if (move === false) return;
+        if (isEmpty) {
             clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
 
             $dragEl.appendTo($toEl);
         } else {
             let after = this.getPosition(evt, isSelf) === 1;
-
-            let move = this.onMove(evt);
-            if (move === false) return;
             after = move === 1 ? true : (move === -1 ? false : after);
 
             clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
-
             if (after) {
                 $dragEl.insertAfter($targetEl);
             } else {
@@ -542,16 +539,17 @@ class DragDrop {
     }
 
     detectDirection(el) {
-        let display = el.css('display');
+        let $el = $(el);
+        let display = $el.css('display');
         if (display === 'flex') {
-            let flexDirection = el.css('flex-direction');
+            let flexDirection = $el.css('flex-direction');
             return flexDirection.startsWith('column') ? 'vertical' : 'horizontal';
         }
 
-        let first = el.children().get(0);
-        let $first = $(first);
-        let second = el.children().eq(1);
-        let $second = $(second);
+        let $first = $el.children().eq(0);
+        let first = $first.get(0);
+        let $second = $el.children().eq(1);
+        let second = $second.get(0);
 
         if (first) {
             let firstFloat = $first.css('float');
