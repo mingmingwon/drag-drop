@@ -1,5 +1,5 @@
 /**
- * @version 0.0.14
+ * @version 0.0.15
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -11,13 +11,11 @@ import util from './util';
 let win = window;
 let doc = win.document;
 let $doc = $(doc);
-let fromEl, $fromEl, fromIns, 
-    toEl, $toEl, toIns, 
+let fromEl, $fromEl, fromIns, fromIndex, 
+    toEl, $toEl, toIns, toIndex, 
     dragEl, $dragEl, dragRect, 
-    cloneEl, $cloneEl, 
-    nextEl, $nextEl, 
-    targetEl, $targetEl, targetRect, 
-    oldIndex, newIndex;
+    targetEl, $targetEl, targetRect,
+    $cloneEl, $nextEl;
 let docDragOverInit = false;
 let docDragOverEvent = evt => {
     if (!dragEl) return;
@@ -296,7 +294,6 @@ class DragDrop {
         dragEl = target;
         $dragEl = $target;
         $nextEl = $dragEl.next();
-        nextEl = $nextEl.get(0);
 
         util.clearSelection();
         dragEl.draggable = true;
@@ -313,8 +310,7 @@ class DragDrop {
 
         if (clone) {
             $cloneEl = $dragEl.clone(true);
-            cloneEl = $cloneEl.get(0);
-            $(cloneEl).removeAttr('draggable').removeClass(activeClass);
+            $cloneEl.removeAttr('draggable').removeClass(activeClass);
             this.hideClone();
         }
 
@@ -333,7 +329,7 @@ class DragDrop {
         setData.call(this, dataTransfer, dragEl);
 
         fromIns = this;
-        oldIndex = $dragEl.index(draggable);
+        fromIndex = $dragEl.index(draggable);
         this.dispatchEvent('start', evt);
     }
 
@@ -347,8 +343,8 @@ class DragDrop {
         _evt.from = fromEl;
         _evt.to = toEl;
         _evt.item = target || dragEl;
-        _evt.oldIndex = oldIndex;
-        _evt.newIndex = newIndex;
+        _evt.fromIndex = fromIndex;
+        _evt.toIndex = toIndex;
 
         evtHandler && evtHandler.call(this, _evt);
     }
@@ -363,8 +359,8 @@ class DragDrop {
         _evt.to = toEl;
         _evt.dragged = dragEl;
         _evt.draggedRect = dragRect;
-        _evt.related = targetEl || toEl;
-        _evt.relatedRect = targetRect || DragDrop.getRect(toEl);
+        _evt.related = targetEl;
+        _evt.relatedRect = targetRect;
 
         // false: cancel, -1: insert before, 1: insert after
         return evtHandler && evtHandler.call(this, _evt);
@@ -453,7 +449,7 @@ class DragDrop {
             }
         }
 
-        newIndex = $dragEl.index(draggable);
+        toIndex = $dragEl.index(draggable);
         this.dispatchEvent('change');
 
         this.animate(dragRect, dragEl);
@@ -465,7 +461,7 @@ class DragDrop {
         if (fromIns && fromIns !== this && dragEl.parentNode !== toEl) {
             $dragEl.appendTo($toEl);
 
-            newIndex = $dragEl.index(draggable);
+            toIndex = $dragEl.index(draggable);
             this.dispatchEvent('change');
 
             this.animate(dragRect, dragEl);
@@ -510,7 +506,7 @@ class DragDrop {
             if (toIns && fromIns !== toIns) {
                 fromIns.dispatchEvent('del');
                 toIns.dispatchEvent('add');
-            } else if (newIndex != null && newIndex !== oldIndex) {
+            } else if (toIndex != null && toIndex !== fromIndex) {
                 fromIns.dispatchEvent('sort');
             }
         }
@@ -520,13 +516,11 @@ class DragDrop {
     }
 
     reset() {
-        fromEl = $fromEl = fromIns = 
-        toEl = $toEl = toIns = 
+        fromEl = $fromEl = fromIns = fromIndex = 
+        toEl = $toEl = toIns = toIndex = 
         dragEl = $dragEl = dragRect = 
-        cloneEl = $cloneEl = 
-        nextEl = $nextEl = 
         targetEl = $targetEl = targetRect = 
-        oldIndex = newIndex = undefined;
+        $cloneEl =  $nextEl = undefined;
     }
 
     destroy() {
@@ -734,7 +728,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.14'
+    static version = '0.0.15'
 }
 
 export default DragDrop;
