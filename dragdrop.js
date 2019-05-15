@@ -247,7 +247,7 @@ class DragDrop {
         if (handle && !$(_target).closest(handle, el).get(0)) return;
 
         let target;
-        if(!(target = $(_target).closest(selector, el).get(0))) return;
+        if (!(target = $(_target).closest(selector, el).get(0))) return;
 
         let $target = $(target);
         if (!$target.hasClass(affixedClass) && !$target.hasClass(disabledClass) && !dragEl) {
@@ -313,7 +313,7 @@ class DragDrop {
         let { clone, activeClass, dragClass, fromClass } = this.options;
 
         if (clone) {
-            $cloneEl = $dragEl.clone(true);
+            $cloneEl = $dragEl.clone();
             $cloneEl.removeAttr('draggable').removeClass(activeClass);
             this.hideClone();
         }
@@ -388,21 +388,13 @@ class DragDrop {
         let _target = evt.target;
         let target;
 
-        if (_target === el) {
-            targetEl = toEl = el;
-            $targetEl = $toEl = $el;
-            $el.off('drop', this.onDrop).on('drop', this.onDrop);
-            dragRect = DragDrop.getRect(dragEl);
-            return;
-        }
-
         if (isEmpty) {
             target = _target;
         } else {
-            target = $(_target).closest(replaceable, el).get(0);
+            target = $(_target).closest(replaceable, el).get(0) || el;
         }
 
-        if (!target || target === dragEl || target.animating) {
+        if (target === dragEl || target.animating) {
             return;
         }
 
@@ -430,10 +422,72 @@ class DragDrop {
 
         let move = this.onMove(evt);
         if (move === false) return;
+
         if (isEmpty) {
             clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
-
             $dragEl.appendTo($toEl);
+        } else if (targetEl === el) {
+            if (dragEl.animating) return;
+
+            let elRect = DragDrop.getRect(el);
+            let inRect = DragDrop.getRect(el, false);
+            let { pageX, pageY } = evt;
+
+            if ((pageX >= elRect.left && pageX <= inRect.left) ||
+                (pageX >= inRect.right && pageX <= elRect.right) || 
+                (pageY >= elRect.top && pageY <= inRect.top) || 
+                (pageY >= inRect.bottom && pageY <= elRect.bottom)) {
+                return;
+            }
+
+            let subRects = [];
+            let $children = $el.children(replaceable);
+            $children.each((index, child) => {
+                let rect = DragDrop.getRect(child, true);
+                rect.index = index;
+                subRects.push(rect);
+            });
+
+            let breaks = [];
+            let subLen = subRects.length;
+            for (let i = 0; i < subLen - 1; i++) {
+                let rect1 = subRects[i];
+                let rect2 = subRects[i + 1];
+                if (rect2.top >= rect1.bottom) {
+                    breaks.push({
+                        left: rect1.right,
+                        top: rect1.top,
+                        bottom: rect1.bottom,
+                        right: inRect.right,
+                        index: i
+                    });
+                }
+            }
+
+            let inserted;
+            for (let i = 0, gapLen = breaks.length; i < gapLen; i++) {
+                let { left, top, bottom, right, index } = breaks[i];
+                let $prev = $children.eq(index);
+                let prev = $prev.get(0);
+                let next = $children.eq(index + 1).get(0);
+                let isDragEl = prev === dragEl || next === dragEl;
+
+                if (!isDragEl && pageX > left && pageX < right && pageY > top && pageY < bottom) {
+                    clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
+                    $dragEl.insertAfter($prev);
+                    inserted = true;
+                    break;
+                }
+            }
+
+            if (!inserted) {
+                let last = subRects[subLen - 1];
+                let { left, top, bottom, right, index } = last || {};
+                if (!last || pageY > bottom || (pageX > right && pageY >= top && pageY <= bottom)) {
+                    clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
+                    $dragEl.appendTo($el);
+                }
+            }
         } else {
             let after = this.getPosition(evt, isSelf) === 1;
             after = move === 1 ? true : (move === -1 ? false : after);
