@@ -1,5 +1,5 @@
 /**
- * @version 0.0.15
+ * @version 0.0.16
  * @author Jordan Wang
  * @repository https://github.com/mingmingwon/drag-drop
  * @license MIT
@@ -707,7 +707,14 @@ class DragDrop {
             height = bottom = win.innerHeight;
             width = right = win.innerWidth;
         } else {
+            let { scrollTop, scrollLeft } = doc.documentElement;
             ({ top, left, bottom, right, height, width } = el.getBoundingClientRect());
+
+            top += scrollTop;
+            left += scrollLeft;
+            bottom += scrollTop;
+            right += scrollLeft;
+
             if (flag === true) {
                 let $el = $(el);
                 top -= parseInt($el.css('margin-top'));
@@ -780,7 +787,7 @@ class DragDrop {
         return new this(...args);
     }
 
-    static version = '0.0.15'
+    static version = '0.0.16'
 }
 
 export default DragDrop;
