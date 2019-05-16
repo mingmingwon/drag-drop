@@ -86,6 +86,7 @@ class DragDrop {
         let iden = 'dd-';
         let defaults = {
             iden,
+            mode: 'simple', // or 'advance'
             group: null,
             clone: false,
             affixed: null,
@@ -379,7 +380,7 @@ class DragDrop {
         let el = this.el;
         let $el = this.$el;
         let options = this.options;
-        let { replaceable, group: toGroup, sortable, toClass, draggable } = options;
+        let { replaceable, group: toGroup, sortable, toClass, mode, draggable } = options;
         let { clone, group: fromGroup } = fromIns.options;
         let childLen = $el.children().length;
         let isEmpty = childLen === 0;
@@ -427,6 +428,14 @@ class DragDrop {
             clone && (isSelf ? fromIns.hideClone() : fromIns.showClone());
             $dragEl.appendTo($toEl);
         } else if (targetEl === el) {
+            if (mode === 'simple') {
+                targetEl = toEl = el;
+                $targetEl = $toEl = $el;
+                $el.off('drop', this.onDrop).on('drop', this.onDrop);
+                dragRect = DragDrop.getRect(dragEl);
+                return;
+            }
+
             if (dragEl.animating) return;
 
             let elRect = DragDrop.getRect(el);
@@ -441,7 +450,7 @@ class DragDrop {
             }
 
             let subRects = [];
-            let $children = $el.children(replaceable);
+            let $children = $el.children();
             $children.each((index, child) => {
                 let rect = DragDrop.getRect(child, true);
                 rect.index = index;
@@ -509,7 +518,7 @@ class DragDrop {
 
     _onDrop(evt) {
         if (!dragEl) return;
-        if (fromIns && fromIns !== this && dragEl.parentNode !== toEl) {
+        if (this.options.mode === 'simple' && fromIns && fromIns !== this && dragEl.parentNode !== toEl) {
             $dragEl.appendTo($toEl);
 
             toIndex = $dragEl.index(draggable);
