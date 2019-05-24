@@ -458,8 +458,7 @@ class DragDrop {
             });
 
             let breaks = [];
-            let subLen = subRects.length;
-            for (let i = 0; i < subLen - 1; i++) {
+            for (let i = 0, subLen = subRects.length; i < subLen - 1; i++) {
                 let rect1 = subRects[i];
                 let rect2 = subRects[i + 1];
                 if (rect2.top >= rect1.bottom) {
@@ -668,7 +667,7 @@ class DragDrop {
         if ((pTop + pHeight / 2) !== (cTop + cHeight / 2) ||
             (pLeft + pWidth / 2) !== (cLeft + cWidth / 2)) {
             let matrix = DragDrop.matrix(this.el);
-            let {a: scaleX = 1, d: scaleY = 1} = matrix;
+            let { a: scaleX = 1, d: scaleY = 1 } = matrix;
             let pTransform = `translate3d(${(pLeft - cLeft) / scaleX}px, ${(pTop - cTop) / scaleY}px, 0)`;
             let cTransform = 'translate3d(0, 0, 0)';
             let transition = `transform ${duration}ms ${timingFunction}`;
